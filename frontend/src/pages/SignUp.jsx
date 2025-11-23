@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-function SingUp() {
+function SignUp() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -121,4 +121,5 @@ const styles = {
   }
 };
 
-export default SingUp;
+export default SignUp;
+
