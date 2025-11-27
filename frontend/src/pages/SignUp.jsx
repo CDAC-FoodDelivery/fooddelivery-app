@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-function SingUp() {
+function SignUp() {
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -60,6 +61,7 @@ function SingUp() {
 
 const styles = {
   container: {
+
     minHeight: '100vh',
     background: 'linear-gradient(180deg, #fffbe9 0%, #ffe0bb 100%)',
     display: 'flex',
@@ -121,4 +123,5 @@ const styles = {
   }
 };
 
-export default SingUp;
+export default SignUp;
+
