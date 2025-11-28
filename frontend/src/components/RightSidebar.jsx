@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from 'react-router-dom';
 
 const initialOrders = [
   {
@@ -237,23 +238,27 @@ const RightSidebar = () => {
           </span>
         </div>
       </div>
-      <button
-        style={{
-          background: "#F15928",
-          border: "none",
-          color: "#fff",
-          borderRadius: 11,
-          padding: "15px 0",
-          width: "100%",
-          fontSize: 17,
-          fontWeight: 600,
-          cursor: "pointer",
-        }}
-        onMouseOver={(e) => (e.currentTarget.style.background = "#d6521f")}
-        onMouseOut={(e) => (e.currentTarget.style.background = "#F15928")}
-      >
-        Continue to Payment
-      </button>
+      <Link
+      to="/payment"   // route of your PaymentPage
+      style={{
+        display: "inline-block",
+        textAlign: "center",
+        textDecoration: "none",
+        background: "#F15928",
+        border: "none",
+        color: "#fff",
+        borderRadius: 11,
+        padding: "15px 0",
+        width: "100%",
+        fontSize: 17,
+        fontWeight: 600,
+        cursor: "pointer",
+      }}
+      onMouseOver={(e) => (e.currentTarget.style.background = "#d6521f")}
+      onMouseOut={(e) => (e.currentTarget.style.background = "#F15928")}
+    >
+      Continue to Payment
+    </Link>
     </aside>
   );
 };
