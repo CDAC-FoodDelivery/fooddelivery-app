@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 
 const initialOrders = [
   {
@@ -26,7 +26,7 @@ const initialOrders = [
 ];
 
 const discount = 5.0;
-const taxRate = 2.25; // flat value here, for demo
+const taxRate = 2.25; // flat value for demo
 
 const RightSidebar = () => {
   const [orders, setOrders] = useState(initialOrders);
@@ -50,7 +50,7 @@ const RightSidebar = () => {
   return (
     <aside
       style={{
-        position: "fixed",        // Make sidebar sticky
+        position: "fixed",
         top: 0,
         right: 0,
         width: 350,
@@ -61,28 +61,15 @@ const RightSidebar = () => {
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        zIndex: 99, 
+        zIndex: 99,
       }}
     >
       <div>
-        <h2
-          style={{
-            fontSize: 22,
-            fontWeight: 600,
-            margin: 0,
-            marginBottom: 20,
-          }}
-        >
+        <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 20 }}>
           Current Order
         </h2>
-        <div
-          style={{
-            flex: "1 1 auto",
-            overflowY: "auto",
-            marginBottom: 30,
-            maxHeight: 340,
-          }}
-        >
+
+        <div style={{ overflowY: "auto", maxHeight: 340, marginBottom: 30 }}>
           {orders.map((item, idx) => (
             <div
               key={idx}
@@ -105,23 +92,28 @@ const RightSidebar = () => {
                   marginRight: 16,
                 }}
               />
+
               <div style={{ flexGrow: 1 }}>
                 <span
                   style={{
                     fontSize: 15,
                     fontWeight: 500,
                     display: "block",
-                    marginBottom: 2,
                   }}
                 >
                   {item.name}
                 </span>
                 <span
-                  style={{ fontWeight: 600, color: "#F15928", fontSize: 14 }}
+                  style={{
+                    fontWeight: 600,
+                    color: "#F15928",
+                    fontSize: 14,
+                  }}
                 >
-                  ${item.price.toFixed(2)}
+                  ₹{item.price.toFixed(2)}
                 </span>
               </div>
+
               <div
                 style={{
                   marginLeft: 20,
@@ -136,53 +128,17 @@ const RightSidebar = () => {
                 }}
               >
                 <button
-                  style={{
-                    background: "#F15928",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 4,
-                    width: 24,
-                    height: 28,
-                    fontSize: 17,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
+                  style={btnStyle}
                   onClick={() => updateQuantity(idx, -1)}
-                  aria-label="Decrease"
-                  onMouseOver={(e) =>
-                    (e.currentTarget.style.background = "#d6521f")
-                  }
-                  onMouseOut={(e) =>
-                    (e.currentTarget.style.background = "#F15928")
-                  }
                 >
                   -
                 </button>
-                <span style={{ margin: "0 4px" }}>{item.quantity}</span>
+
+                <span>{item.quantity}</span>
+
                 <button
-                  style={{
-                    background: "#F15928",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 4,
-                    width: 24,
-                    height: 28,
-                    fontSize: 17,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
+                  style={btnStyle}
                   onClick={() => updateQuantity(idx, 1)}
-                  aria-label="Increase"
-                  onMouseOver={(e) =>
-                    (e.currentTarget.style.background = "#d6521f")
-                  }
-                  onMouseOut={(e) =>
-                    (e.currentTarget.style.background = "#F15928")
-                  }
                 >
                   +
                 </button>
@@ -190,6 +146,7 @@ const RightSidebar = () => {
             </div>
           ))}
         </div>
+
         <div
           style={{
             background: "#fafafa",
@@ -199,68 +156,67 @@ const RightSidebar = () => {
             fontSize: 15,
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginBottom: 10,
-            }}
-          >
+          <div style={rowStyle}>
             <span>Subtotal</span>
-            <span>${subtotal.toFixed(2)}</span>
+            <span>₹{subtotal.toFixed(2)}</span>
           </div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginBottom: 10,
-            }}
-          >
+          <div style={rowStyle}>
             <span>Discount sales</span>
-            <span style={{ color: "#2db97f" }}>- ${discount.toFixed(2)}</span>
+            <span style={{ color: "#2db97f" }}>
+              - ₹{discount.toFixed(2)}
+            </span>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <div style={rowStyle}>
             <span>Total sales tax</span>
-            <span>${taxRate.toFixed(2)}</span>
+            <span>₹{taxRate.toFixed(2)}</span>
           </div>
         </div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 24,
-          }}
-        >
+
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
           <span style={{ fontSize: 19, fontWeight: 600 }}>Total</span>
-          <span style={{ fontSize: 21, fontWeight: 700, color: "#F15928" }}>
-            ${total.toFixed(2)}
+          <span
+            style={{ fontSize: 21, fontWeight: 700, color: "#F15928" }}
+          >
+            ₹{total.toFixed(2)}
           </span>
         </div>
       </div>
+
       <Link
-      to="/payment"   // route of your PaymentPage
-      style={{
-        display: "inline-block",
-        textAlign: "center",
-        textDecoration: "none",
-        background: "#F15928",
-        border: "none",
-        color: "#fff",
-        borderRadius: 11,
-        padding: "15px 0",
-        width: "100%",
-        fontSize: 17,
-        fontWeight: 600,
-        cursor: "pointer",
-      }}
-      onMouseOver={(e) => (e.currentTarget.style.background = "#d6521f")}
-      onMouseOut={(e) => (e.currentTarget.style.background = "#F15928")}
-    >
-      Continue to Payment
-    </Link>
+        to="/payment"
+        style={{
+          display: "block",
+          textAlign: "center",
+          textDecoration: "none",
+          background: "#F15928",
+          color: "#fff",
+          borderRadius: 11,
+          padding: "15px 0",
+          fontSize: 17,
+          fontWeight: 600,
+        }}
+      >
+        Continue to Payment
+      </Link>
     </aside>
   );
+};
+
+const btnStyle = {
+  background: "#F15928",
+  color: "#fff",
+  border: "none",
+  borderRadius: 4,
+  width: 24,
+  height: 28,
+  fontSize: 17,
+  cursor: "pointer",
+};
+
+const rowStyle = {
+  display: "flex",
+  justifyContent: "space-between",
+  marginBottom: 10,
 };
 
 export default RightSidebar;

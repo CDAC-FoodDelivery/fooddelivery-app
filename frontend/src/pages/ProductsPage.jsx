@@ -42,7 +42,7 @@ const products = [
     description: "Stone-baked pizza topped with tomato sauce, mozzarella, and fresh basil leaves",
     price: 15.90,
     pieces: 1,
-    image: "https://images.unsplash.com/photo-1542281286-9e0a16bb7366?auto=format&fit=crop&w=260&q=80"
+    // image: "https://images.unsplash.com/photo-1542281286-9e0a16bb7366?auto=format&fit=crop&w=260&q=80"
   },
   {
     name: "Chicken Caesar Salad",

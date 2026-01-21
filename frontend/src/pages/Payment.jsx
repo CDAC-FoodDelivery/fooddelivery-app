@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+
 
 const initialCart = [
   { id: 1, name: "Smoke Tenderloin Slice Croissant", qty: 1, price: 10.01 },
@@ -8,7 +9,7 @@ const initialCart = [
 
 function Payment() {
   const [cart] = useState(initialCart);
-  const [method, setMethod] = useState("card"); // "card" | "upi" | "cod"
+  const [method, setMethod] = useState("card");
   const [card, setCard] = useState({
     name: "",
     number: "",
@@ -29,15 +30,15 @@ function Payment() {
 
   const handlePay = (e) => {
     e.preventDefault();
-    if (method === "card") {
-      console.log("Pay with CARD", card);
-    } else if (method === "upi") {
-      console.log("Pay with UPI", upiId);
-    } else {
-      console.log("Cash on Delivery selected");
-    }
     alert(`Order placed with ${method.toUpperCase()} (dummy).`);
   };
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, []);
 
   return (
     <div
@@ -70,7 +71,6 @@ function Payment() {
             Choose a payment method and confirm your order.
           </p>
 
-          {/* method tabs */}
           <div
             style={{
               display: "inline-flex",
@@ -134,7 +134,6 @@ function Payment() {
                     name="number"
                     value={card.number}
                     onChange={handleCardChange}
-                    maxLength={19}
                     placeholder="1234 5678 9012 3456"
                     required
                   />
@@ -167,7 +166,6 @@ function Payment() {
                       value={card.cvv}
                       onChange={handleCardChange}
                       placeholder="123"
-                      maxLength={4}
                       required
                     />
                   </div>
@@ -185,9 +183,6 @@ function Payment() {
                   placeholder="yourname@upi"
                   required
                 />
-                <p style={{ fontSize: 12, color: "#9a9aad", marginTop: 4 }}>
-                  You will receive a collect request on your UPI app. [Demo only]
-                </p>
               </div>
             )}
 
@@ -203,8 +198,7 @@ function Payment() {
                   color: "#8a5800"
                 }}
               >
-                Pay in cash when the order is delivered.  
-                Please keep exact change ready if possible.
+                Pay in cash when the order is delivered.
               </div>
             )}
 
@@ -219,24 +213,11 @@ function Payment() {
                 color: "#fff",
                 fontWeight: 600,
                 fontSize: 15,
-                cursor: "pointer",
-                marginTop: 4
+                cursor: "pointer"
               }}
             >
-              {method === "cod" ? "Place Order (COD)" : `Pay $${total}`}
+              {method === "cod" ? "Place Order (COD)" : `Pay ₹${total}`}
             </button>
-
-            <p
-              style={{
-                marginTop: 10,
-                fontSize: 12,
-                color: "#9a9aad",
-                textAlign: "center"
-              }}
-            >
-              By confirming, you agree to the Terms & Conditions and Privacy
-              Policy.
-            </p>
           </form>
         </section>
 
@@ -246,58 +227,49 @@ function Payment() {
             background: "#f7f7fb",
             borderRadius: 18,
             padding: 18,
-            alignSelf: "stretch",
             display: "flex",
             flexDirection: "column"
           }}
         >
           <h3 style={{ marginBottom: 10 }}>Order Summary</h3>
-          <div
-            style={{
-              flex: 1,
-              overflowY: "auto",
-              marginBottom: 14,
-              paddingRight: 4
-            }}
-          >
+
+          <div style={{ flex: 1 }}>
             {cart.map((item) => (
               <div
                 key={item.id}
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
-                  alignItems: "center",
                   marginBottom: 10
                 }}
               >
                 <div>
                   <p style={{ fontSize: 14 }}>{item.name}</p>
-                  <span
-                    style={{ fontSize: 12, color: "#9a9aad" }}
-                  >{`x${item.qty}`}</span>
+                  <span style={{ fontSize: 12, color: "#9a9aad" }}>
+                    x{item.qty}
+                  </span>
                 </div>
                 <span style={{ fontWeight: 600 }}>
-                  ${(item.price * item.qty).toFixed(2)}
+                  ₹{(item.price * item.qty).toFixed(2)}
                 </span>
               </div>
             ))}
           </div>
 
           <div style={{ borderTop: "1px dashed #d4d4e0", paddingTop: 10 }}>
-            <Row label="Subtotal" value={`$${subtotal.toFixed(2)}`} />
-            <Row label="Discount" value={`- $${discount.toFixed(2)}`} />
-            <Row label="Tax" value={`$${tax.toFixed(2)}`} />
+            <Row label="Subtotal" value={`₹${subtotal.toFixed(2)}`} />
+            <Row label="Discount" value={`- ₹${discount.toFixed(2)}`} />
+            <Row label="Tax" value={`₹${tax.toFixed(2)}`} />
             <div
               style={{
                 display: "flex",
                 justifyContent: "space-between",
                 marginTop: 8,
-                fontWeight: 700,
-                fontSize: 15
+                fontWeight: 700
               }}
             >
               <span>Total</span>
-              <span>${total}</span>
+              <span>₹{total}</span>
             </div>
           </div>
         </aside>
