@@ -20,7 +20,7 @@ const Navbar = () => (
       justifyContent: "space-between",
       padding: "0 44px",
       boxShadow: "0 2px 10px rgba(0,0,0,0.035)",
-      zIndex: 1000,
+      zIndex: 50,
     }}
   >
     {/* Welcome + Subtitle */}
