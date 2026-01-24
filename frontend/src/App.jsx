@@ -9,6 +9,7 @@ import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import ProductsPage from "./pages/ProductsPage";
 import Payment from "./pages/Payment";
+import HotelsPage from "./pages/HotelPage";
 
 function App() {
   return (
@@ -18,10 +19,11 @@ function App() {
         {/* Public routes (NO layout) */}
         <Route path="/" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
-
+          <Route path="/home" element={<HotelsPage />}/>          { /*Hotel page is home page hence /home*/}
         {/* Layout routes */}
         <Route element={<MainLayout />}>
-          <Route path="/home" element={<ProductsPage />} />
+       
+         // <Route path="/product" element={<ProductsPage />} />
           <Route path="/payment" element={<Payment />} />
         </Route>
 
