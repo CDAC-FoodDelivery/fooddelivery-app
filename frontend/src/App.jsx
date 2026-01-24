@@ -9,7 +9,7 @@ import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import ProductsPage from "./pages/ProductsPage";
 import Payment from "./pages/Payment";
-
+import AdminDashboard from "./pages/AdminDashboard"
 function App() {
   return (
     <BrowserRouter>
@@ -18,7 +18,7 @@ function App() {
         {/* Public routes (NO layout) */}
         <Route path="/" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
-
+        <Route path="/adminDashboard" element={<AdminDashboard />} />
         {/* Layout routes */}
         <Route element={<MainLayout />}>
           <Route path="/home" element={<ProductsPage />} />
