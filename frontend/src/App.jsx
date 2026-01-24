@@ -10,6 +10,7 @@ import SignUp from "./pages/SignUp";
 import ProductsPage from "./pages/ProductsPage";
 import Payment from "./pages/Payment";
 import HotelsPage from "./pages/HotelPage";
+import AdminDashboard from "./pages/adminDashboard"
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
          // <Route path="/product" element={<ProductsPage />} />
           <Route path="/payment" element={<Payment />} />
         </Route>
+        <Route path="/adminDashboard" element={<AdminDashboard />}/>
 
       </Routes>
     </BrowserRouter>
