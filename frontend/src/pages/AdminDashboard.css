@@ -1,0 +1,192 @@
+* {
+  box-sizing: border-box;
+  font-family: "Inter", "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+}
+
+.admin-page {
+  min-height: 100vh;
+  background: #fdf6f1;
+}
+
+
+.admin-header {
+  padding: 30px 50px;
+  background: linear-gradient(90deg, #ff6b35, #ff8f5c);
+  color: white;
+}
+
+.admin-header h1 {
+  margin: 0;
+  font-size: 32px;
+}
+
+.admin-header p {
+  margin-top: 6px;
+  opacity: 0.9;
+}
+
+
+.tabs {
+  display: flex;
+  gap: 12px;
+  padding: 20px 50px;
+  background: white;
+  border-bottom: 1px solid #eee;
+}
+
+.tabs button {
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  font-weight: 600;
+  cursor: pointer;
+  color: #555;
+}
+
+.tabs button.active {
+  background: #ff6b35;
+  color: white;
+}
+
+
+.content {
+  padding: 40px 50px;
+}
+
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.section-header h2 {
+  margin: 0;
+}
+
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+
+.card {
+  background: white;
+  padding: 22px;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.1);
+}
+
+.restaurant-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+
+.badge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 5px 12px;
+  background: #ff6b35;
+  color: white;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+
+.card-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+}
+
+
+.update {
+  background: #f4a261;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #fff;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.update:hover {
+  background: #f19547;
+}
+
+
+.status-btn {
+  background: #6c63ff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  min-width: 100px;
+  transition: all 0.2s;
+}
+
+.status-btn:hover {
+  background: #574fd6;
+  transform: translateY(-2px);
+}
+
+
+.delete {
+  background: #e63946;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.delete:hover {
+  background: #c5303f;
+}
+
+
+.add-btn {
+  background: #ff6b35;
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+
+.insight {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  padding: 30px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #ff6b35, #ff8f5c);
+  color: #fff;
+}

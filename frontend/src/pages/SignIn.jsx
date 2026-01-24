@@ -9,16 +9,15 @@ function SignIn() {
     <div style={styles.container}>
       <form style={styles.form}>
         <h2 style={styles.title}>Sign in to your account</h2>
+
         <label style={styles.label}>Email or username</label>
         <input
           type="text"
           value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-            console.log("Email:", e.target.value);
-          }}
+          onChange={(e) => setEmail(e.target.value)}
           style={styles.input}
         />
+
         <label style={styles.label}>Password</label>
         <input
           type="password"
@@ -26,14 +25,20 @@ function SignIn() {
           onChange={(e) => setPassword(e.target.value)}
           style={styles.input}
         />
-        <div style={styles.forgot}>
-          <a href="#" style={styles.forgotLink}>
+
+        <div style={styles.linksContainer}>
+          <a href="#" style={styles.link}>
             Forgot password?
           </a>
+          <Link to="/adminDashboard" style={styles.adminLink}>
+            Sign in as Admin
+          </Link>
         </div>
+
         <Link to="/home" type="submit" style={styles.button}>
           SIGN IN
         </Link>
+
         <div style={styles.newUser}>
           New to this site?{" "}
           <Link to="/signup" style={styles.registerLink}>
@@ -41,6 +46,7 @@ function SignIn() {
           </Link>
         </div>
       </form>
+
       <footer style={styles.footer}>©2025-2026 Food Delivery Inc.</footer>
     </div>
   );
@@ -81,14 +87,20 @@ const styles = {
     fontSize: "16px",
     outline: "none",
   },
-  forgot: {
-    textAlign: "right",
+  linksContainer: {
+    display: "flex",
+    justifyContent: "space-between",
     marginBottom: "18px",
+    fontSize: "14px",
   },
-  forgotLink: {
+  link: {
     color: "#ff6733",
     textDecoration: "none",
-    fontSize: "14px",
+  },
+  adminLink: {
+    color: "#6c63ff",
+    textDecoration: "none",
+    fontWeight: "600",
   },
   button: {
     width: "100%",
