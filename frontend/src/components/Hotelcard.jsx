@@ -2,12 +2,14 @@ import React from "react";
 import "./Hotelcard.css";
 import { StarFill } from "react-bootstrap-icons";
 
-const HotelCard = ({ name, rating, cuisine, location, image, offer, time }) => {
+const HotelCard = ({ name, rating, cuisine, location, image, offers }) => {
   return (
     <div className="hotel-card">
       <div className="image-wrapper">
         <img src={image} alt={name} />
-        {offer && <span className="offer-badge">{offer}</span>}
+        {offers?.length > 0 && (
+          <span className="offer-badge">{offers[0]}</span>
+        )}
       </div>
 
       <div className="card-body">
@@ -17,8 +19,6 @@ const HotelCard = ({ name, rating, cuisine, location, image, offer, time }) => {
           <span className="rating">
             <StarFill size={12} /> {rating}
           </span>
-          <span className="dot">•</span>
-          <span>{time}</span>
         </div>
 
         <p className="cuisine">{cuisine}</p>
