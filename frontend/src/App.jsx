@@ -24,8 +24,9 @@ function App() {
         <Route path="/home" element={<HotelsPage />} />          { /*Hotel page is home page hence /home*/}
         {/* Layout routes */}
         <Route element={<MainLayout />}>
+            <Route path="/product/:hotelId" element={<ProductsPage />} />
 
-         // <Route path="/product" element={<ProductsPage />} />
+         {/* <Route path="/product" element={<ProductsPage />} />*/}
           <Route path="/payment" element={<Payment />} />
         </Route>
         <Route path="/adminDashboard" element={<AdminDashboard />} />

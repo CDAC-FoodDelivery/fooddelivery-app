@@ -1,0 +1,13 @@
+button {
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  background: white;
+  cursor: pointer;
+}
+
+.active-filter {
+  background: #28a745;
+  color: white;
+  border: none;
+}

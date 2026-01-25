@@ -1,104 +1,93 @@
-import React from "react";
-import ProductCard from "../components/ProductCard"; // update the path as needed
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import axios from "axios";
+import ProductCard from "../components/ProductCard";
 
-const products = [
-  {
-    name: "Almond Brown Sugar Croissant",
-    description: "Sweet croissant with topping almonds and brown sugar",
-    price: 12.98,
-    pieces: 3,
-    image: "https://images.unsplash.com/photo-1519861531864-07a5a0a1a389?auto=format&fit=crop&w=260&q=80",
-  },
-  {
-    name: "Smoke Tenderloin Slice Croissant",
-    description: "Plain croissant with smoke tenderloin beef sliced and vegetable",
-    price: 10.01,
-    pieces: 2,
-    image: "https://images.unsplash.com/photo-1458642849426-cfb724f15ef7?auto=format&fit=crop&w=260&q=80",
-  },
-  {
-    name: "Berry Whipped Cream Croissant",
-    description: "Sweet croissant with blueberries and strawberries inside",
-    price: 8.92,
-    pieces: 3,
-    image: "https://images.unsplash.com/photo-1514958106963-cd1391bd1d83?auto=format&fit=crop&w=260&q=80",
-  },
-  {
-    name: "Sweet Granulated Sugar Croissant",
-    description: "Sweet croissant",
-    price: 5.58,
-    pieces: 1,
-    image: "https://images.unsplash.com/photo-1525755662778-989d0524087e?auto=format&fit=crop&w=260&q=80",
-  },
-  {
-    name: "Sweet Chocolate Chocochips Croissant",
-    description: "Chocolate croissant",
-    price: 22.02,
-    pieces: 2,
-    image: "https://images.unsplash.com/photo-1447078806655-40579c2e9c89?auto=format&fit=crop&w=260&q=80",
-  },
-  {
-    name: "Classic Margherita Pizza",
-    description: "Stone-baked pizza topped with tomato sauce, mozzarella, and fresh basil leaves",
-    price: 15.90,
-    pieces: 1,
-    // image: "https://images.unsplash.com/photo-1542281286-9e0a16bb7366?auto=format&fit=crop&w=260&q=80"
-  },
-  {
-    name: "Chicken Caesar Salad",
-    description: "Crisp romaine lettuce, grilled chicken, parmesan, croutons, and Caesar dressing",
-    price: 13.50,
-    pieces: 1,
-    image: "https://images.unsplash.com/photo-1519861531864-07a5a0a1a389?auto=format&fit=crop&w=260&q=80"
-  },
-  {
-    name: "Grilled Salmon Fillet",
-    description: "Fresh grilled salmon served with steamed broccoli and lemon butter sauce",
-    price: 18.25,
-    pieces: 1,
-    image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=260&q=80"
-  },
-  {
-    name: "Vegetable Spring Rolls",
-    description: "Golden crispy rolls stuffed with mixed vegetables, served with sweet chili sauce",
-    price: 7.60,
-    pieces: 4,
-    image: "https://images.unsplash.com/photo-1476718406336-bb5a9690ee2a?auto=format&fit=crop&w=260&q=80"
-  },
-  {
-    name: "Beef Cheeseburger",
-    description: "Juicy grilled beef patty, cheddar cheese, pickles, and onions in a sesame bun",
-    price: 14.00,
-    pieces: 1,
-    image: "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=260&q=80"
-  },
-  {
-    name: "Chocolate Lava Cake",
-    description: "Warm chocolate cake with gooey molten center, served with vanilla ice cream",
-    price: 9.85,
-    pieces: 2,
-    image: "https://images.unsplash.com/photo-1505250463000-180dd4864904?auto=format&fit=crop&w=260&q=80"
-  }
-];
+const ProductsPage = () => {
+  const { hotelId } = useParams(); // from /product/:hotelId
 
-const ProductsPage = () => (
-  <div style={{
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "32px",
-    padding: "24px 0",
-    marginLeft: "125px",    // matches left sidebar width
-    marginRight: "350px",  // matches right sidebar width
-    marginTop: "78px",
-  }}>
-    {products.map((prod, idx) => (
-      <ProductCard
-        key={idx}
-        {...prod}
-        onAddToCart={() => alert(`Added ${prod.name} to cart!`)}
-      />
-    ))}
-  </div>
-);
+  const [products, setProducts] = useState([]);
+  const [foodType, setFoodType] = useState("ALL"); // ALL | VEG | NON_VEG
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchMenu();
+  }, [hotelId, foodType]);
+
+  const fetchMenu = async () => {
+    setLoading(true);
+    try {
+      let url = `http://localhost:8082/api/menu?hotelId=${hotelId}`;
+
+      if (foodType !== "ALL") {
+        url = `http://localhost:8082/api/menu/filter?hotelId=${hotelId}&foodType=${foodType}`;
+      }
+
+      const response = await axios.get(url);
+      setProducts(response.data);
+    } catch (error) {
+      console.error("Error fetching menu:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div
+      style={{
+        marginLeft: "125px",
+        marginRight: "350px",
+        marginTop: "78px",
+      }}
+    >
+      {/* FILTER BAR */}
+      <div style={{ marginBottom: "20px", display: "flex", gap: "12px" }}>
+        <button
+          onClick={() => setFoodType("ALL")}
+          className={foodType === "ALL" ? "active-filter" : ""}
+        >
+          All
+        </button>
+        <button
+          onClick={() => setFoodType("VEG")}
+          className={foodType === "VEG" ? "active-filter" : ""}
+        >
+          Veg 🌱
+        </button>
+        <button
+          onClick={() => setFoodType("NON_VEG")}
+          className={foodType === "NON_VEG" ? "active-filter" : ""}
+        >
+          Non-Veg 🍗
+        </button>
+      </div>
+
+      {/* MENU GRID */}
+      {loading ? (
+        <p>Loading menu...</p>
+      ) : (
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "32px",
+            padding: "24px 0",
+          }}
+        >
+          {products.map((prod) => (
+            <ProductCard
+              key={prod.id}
+              name={prod.name}
+              description={prod.description}
+              price={prod.price}
+              image={prod.imageUrl}
+              onAddToCart={() => alert(`Added ${prod.name} to cart!`)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default ProductsPage;
