@@ -11,6 +11,7 @@ import ProductsPage from "./pages/ProductsPage";
 import Payment from "./pages/Payment";
 import HotelsPage from "./pages/HotelPage";
 import AdminDashboard from "./pages/adminDashboard"
+import RiderDashboard from "./pages/RiderDashboard"
 
 function App() {
   return (
@@ -20,14 +21,15 @@ function App() {
         {/* Public routes (NO layout) */}
         <Route path="/" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
-          <Route path="/home" element={<HotelsPage />}/>          { /*Hotel page is home page hence /home*/}
+        <Route path="/home" element={<HotelsPage />} />          { /*Hotel page is home page hence /home*/}
         {/* Layout routes */}
         <Route element={<MainLayout />}>
-       
+
          // <Route path="/product" element={<ProductsPage />} />
           <Route path="/payment" element={<Payment />} />
         </Route>
-        <Route path="/adminDashboard" element={<AdminDashboard />}/>
+        <Route path="/adminDashboard" element={<AdminDashboard />} />
+        <Route path="/riderDashboard" element={<RiderDashboard />} />
 
       </Routes>
     </BrowserRouter>
