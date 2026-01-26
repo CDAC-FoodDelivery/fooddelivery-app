@@ -1,13 +1,34 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const navigate = useNavigate();
+
+    const handleLogin = async (e) => {
+      e.preventDefault();
+      try {
+        const response = await axios.post("http://localhost:8083/auth/login", {
+          username: email,
+          password: password,
+        });
+        if (response.data) {
+          localStorage.setItem("token", response.data);
+          alert("Login Successful");
+          navigate("/home");
+        }
+      } catch (error) {
+        console.error("Login failed", error);
+        alert("Invalid Credentials");
+      }
+    };
+
   return (
     <div style={styles.container}>
-      <form style={styles.form}>
+      <form style={styles.form} onSubmit={handleLogin}>
         <h2 style={styles.title}>Sign in to your account</h2>
 
         <label style={styles.label}>Email or username</label>
@@ -35,9 +56,9 @@ function SignIn() {
           </Link>
         </div>
 
-        <Link to="/home" type="submit" style={styles.button}>
+        <button type="submit" style={styles.button}>
           SIGN IN
-        </Link>
+        </button>
 
         <div style={styles.newUser}>
           New to this site?{" "}
