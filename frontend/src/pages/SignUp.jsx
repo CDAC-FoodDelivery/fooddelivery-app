@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 function SignUp() {
   const [name, setName] = useState('');
@@ -22,11 +23,11 @@ function SignUp() {
         address,
         role: "USER"
       });
-      alert("Registration Successful. Please Login.");
+      toast.success("Registration Successful. Please Login.");
       navigate("/");
     } catch (error) {
       console.error("SignUp failed", error);
-      alert("Registration Failed");
+      toast.error("Registration Failed");
     }
   };
 

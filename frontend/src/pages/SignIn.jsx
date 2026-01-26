@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { toast } from 'react-toastify';
 
 function SignIn() {
   const [email, setEmail] = useState("");
@@ -8,23 +9,23 @@ function SignIn() {
 
   const navigate = useNavigate();
 
-    const handleLogin = async (e) => {
-      e.preventDefault();
-      try {
-        const response = await axios.post("http://localhost:8083/auth/login", {
-          username: email,
-          password: password,
-        });
-        if (response.data) {
-          localStorage.setItem("token", response.data);
-          alert("Login Successful");
-          navigate("/home");
-        }
-      } catch (error) {
-        console.error("Login failed", error);
-        alert("Invalid Credentials");
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post("http://localhost:8083/auth/login", {
+        username: email,
+        password: password,
+      });
+      if (response.data) {
+        localStorage.setItem("token", response.data);
+        toast.success("Login Successful");
+        navigate("/home");
       }
-    };
+    } catch (error) {
+      console.error("Login failed", error);
+      toast.error("Invalid Credentials");
+    }
+  };
 
   return (
     <div style={styles.container}>

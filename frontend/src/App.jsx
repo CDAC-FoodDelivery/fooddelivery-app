@@ -1,6 +1,8 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "bootstrap-icons/font/bootstrap-icons.css";
+import "react-toastify/dist/ReactToastify.css"; // Import toast styles
+import { ToastContainer } from "react-toastify";
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
@@ -17,13 +19,14 @@ import CartPage from "./pages/CartPage"
 function App() {
   return (
     <BrowserRouter>
+      <ToastContainer position="top-right" autoClose={3000} />
       <Routes>
 
         {/* Public routes (NO layout) */}
         <Route path="/" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/home" element={<HotelsPage />} />         { /*Hotel page is home page hence /home*/}
-         <Route path="/cart" element={<CartPage />} />
+        <Route path="/cart" element={<CartPage />} />
         {/* Layout routes */}
         <Route element={<MainLayout />}>
           <Route path="/product/:hotelId" element={<ProductsPage />} />
@@ -33,7 +36,7 @@ function App() {
         </Route>
         <Route path="/adminDashboard" element={<AdminDashboard />} />
         <Route path="/riderDashboard" element={<RiderDashboard />} />
-        
+
 
       </Routes>
     </BrowserRouter>
