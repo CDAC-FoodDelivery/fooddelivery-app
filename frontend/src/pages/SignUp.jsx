@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link ,useNavigate} from 'react-router-dom';
 
 function SignUp() {
   const [name, setName] = useState('');
@@ -8,9 +8,30 @@ function SignUp() {
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
 
+  const navigate = useNavigate();
+
+    const handleSignUp = async (e) => {
+      e.preventDefault();
+      try {
+        await axios.post('http://localhost:8083/auth/register', {
+          name,
+          email,
+          password,
+          phone,
+          address,
+          role: "USER"
+        });
+        alert("Registration Successful. Please Login.");
+        navigate("/");
+      } catch (error) {
+        console.error("SignUp failed", error);
+        alert("Registration Failed");
+      }
+    };
+
   return (
     <div style={styles.container}>
-      <form style={styles.form}>
+      <form style={styles.form} onSubmit={handleSignUp}>
         <h2 style={styles.title}>Create your account</h2>
         <label style={styles.label}>Name</label>
         <input
@@ -46,7 +67,7 @@ function SignUp() {
           onChange={e => setAddress(e.target.value)}
           style={{ ...styles.input, height: '80px', resize: 'vertical' }}
         />
-        <Link to="/" type="submit" style={styles.button}>SIGN UP</Link>
+        <button type="submit" style={styles.button}>SIGN UP</button>
         <div style={styles.newUser}>
           Already have an account? <Link to="/" style={styles.registerLink}>Sign in</Link>
         </div>
