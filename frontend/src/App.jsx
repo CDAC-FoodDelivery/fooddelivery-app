@@ -10,7 +10,7 @@ import SignUp from "./pages/SignUp";
 import ProductsPage from "./pages/ProductsPage";
 import Payment from "./pages/Payment";
 import HotelsPage from "./pages/HotelPage";
-import AdminDashboard from "./pages/adminDashboard"
+import AdminDashboard from "./pages/AdminDashboard"
 import RiderDashboard from "./pages/RiderDashboard"
 
 function App() {
@@ -24,9 +24,9 @@ function App() {
         <Route path="/home" element={<HotelsPage />} />          { /*Hotel page is home page hence /home*/}
         {/* Layout routes */}
         <Route element={<MainLayout />}>
-            <Route path="/product/:hotelId" element={<ProductsPage />} />
+          <Route path="/product/:hotelId" element={<ProductsPage />} />
 
-         {/* <Route path="/product" element={<ProductsPage />} />*/}
+          {/* <Route path="/product" element={<ProductsPage />} />*/}
           <Route path="/payment" element={<Payment />} />
         </Route>
         <Route path="/adminDashboard" element={<AdminDashboard />} />

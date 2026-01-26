@@ -1,5 +1,6 @@
 package com.fooddelivery.auth.service;
 
+import com.fooddelivery.auth.dto.AuthResponse;
 import com.fooddelivery.auth.entity.User;
 import com.fooddelivery.auth.repository.UserRepository;
 import com.fooddelivery.auth.util.JwtUtils;
@@ -19,10 +20,16 @@ public class AuthService {
     @Autowired
     private JwtUtils jwtUtils;
 
-    public String saveUser(User credential) {
+    public AuthResponse saveUser(User credential) {
+
+        if (repository.findByEmail(credential.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already exists");
+        }
         credential.setPassword(passwordEncoder.encode(credential.getPassword()));
         repository.save(credential);
-        return "User added to the system";
+        String token = jwtUtils.generateToken(credential.getEmail());
+
+        return new AuthResponse("User registered successfully", token);
     }
 
     public String generateToken(String username) {
@@ -30,6 +37,12 @@ public class AuthService {
     }
 
     public void validateToken(String token) {
-        jwtUtils.validateToken(token, repository.findByEmail(jwtUtils.extractUsername(token)).get().getEmail());
+        String email = jwtUtils.extractUsername(token);
+
+        User user = repository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        jwtUtils.validateToken(token, user.getEmail());
     }
+
 }

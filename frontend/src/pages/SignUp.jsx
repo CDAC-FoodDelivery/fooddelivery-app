@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Link ,useNavigate} from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 function SignUp() {
   const [name, setName] = useState('');
@@ -10,24 +11,24 @@ function SignUp() {
 
   const navigate = useNavigate();
 
-    const handleSignUp = async (e) => {
-      e.preventDefault();
-      try {
-        await axios.post('http://localhost:8083/auth/register', {
-          name,
-          email,
-          password,
-          phone,
-          address,
-          role: "USER"
-        });
-        alert("Registration Successful. Please Login.");
-        navigate("/");
-      } catch (error) {
-        console.error("SignUp failed", error);
-        alert("Registration Failed");
-      }
-    };
+  const handleSignUp = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post('http://localhost:8083/auth/register', {
+        name,
+        email,
+        password,
+        phone,
+        address,
+        role: "USER"
+      });
+      alert("Registration Successful. Please Login.");
+      navigate("/");
+    } catch (error) {
+      console.error("SignUp failed", error);
+      alert("Registration Failed");
+    }
+  };
 
   return (
     <div style={styles.container}>
