@@ -1,13 +1,82 @@
-button {
-  padding: 8px 14px;
+/* PAGE WRAPPER */
+.page-wrapper {
+  margin-left: 125px;
+  margin-right: 350px;
+  margin-top: 90px;
+}
+
+/* FILTER BAR */
+.filter-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.filter-bar button {
+  padding: 6px 14px;
   border-radius: 20px;
   border: 1px solid #ddd;
   background: white;
   cursor: pointer;
+  font-size: 14px;
 }
 
 .active-filter {
-  background: #28a745;
+  background: #fc8019;
   color: white;
-  border: none;
+  border-color: #fc8019;
+}
+
+/* PRODUCTS GRID */
+.products-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 28px;
+}
+/* PAGE */
+.products-page {
+  margin-left: 120px;   /* sidebar space */
+  margin-right: 340px;  /* cart space */
+  margin-top: 90px;
+}
+
+/* FILTER BAR (TOP HORIZONTAL) */
+.food-filter-bar {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.food-filter-bar button {
+  padding: 8px 18px;
+  border-radius: 22px;
+  border: 1px solid #ddd;
+  background: white;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ACTIVE STATE */
+.food-filter-bar button.active {
+  background-color: #fc8019;
+  color: white;
+  border-color: #fc8019;
+}
+
+/* OPTIONAL COLOR HINTS */
+.food-filter-bar .veg {
+  border-color: #2ecc71;
+}
+
+.food-filter-bar .nonveg {
+  border-color: #e74c3c;
+}
+
+/* PRODUCTS GRID */
+.products-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 28px;
 }

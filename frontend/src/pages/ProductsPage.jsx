@@ -2,12 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import ProductCard from "../components/ProductCard";
+import "./ProductsPage.css";
 
 const ProductsPage = () => {
-  const { hotelId } = useParams(); // from /product/:hotelId
+  const { hotelId } = useParams();
 
   const [products, setProducts] = useState([]);
-  const [foodType, setFoodType] = useState("ALL"); // ALL | VEG | NON_VEG
+  const [foodType, setFoodType] = useState("ALL");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,47 +34,37 @@ const ProductsPage = () => {
   };
 
   return (
-    <div
-      style={{
-        marginLeft: "125px",
-        marginRight: "350px",
-        marginTop: "78px",
-      }}
-    >
+    <div className="products-page">
+
       {/* FILTER BAR */}
-      <div style={{ marginBottom: "20px", display: "flex", gap: "12px" }}>
+      <div className="food-filter-bar">
         <button
+          className={foodType === "ALL" ? "active" : ""}
           onClick={() => setFoodType("ALL")}
-          className={foodType === "ALL" ? "active-filter" : ""}
         >
           All
         </button>
+
         <button
+          className={foodType === "VEG" ? "active veg" : "veg"}
           onClick={() => setFoodType("VEG")}
-          className={foodType === "VEG" ? "active-filter" : ""}
         >
           Veg 🌱
         </button>
+
         <button
+          className={foodType === "NON_VEG" ? "active nonveg" : "nonveg"}
           onClick={() => setFoodType("NON_VEG")}
-          className={foodType === "NON_VEG" ? "active-filter" : ""}
         >
           Non-Veg 🍗
         </button>
       </div>
 
-      {/* MENU GRID */}
+      {/* PRODUCTS GRID */}
       {loading ? (
         <p>Loading menu...</p>
       ) : (
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "32px",
-            padding: "24px 0",
-          }}
-        >
+        <div className="products-container">
           {products.map((prod) => (
             <ProductCard
               key={prod.id}
@@ -81,7 +72,6 @@ const ProductsPage = () => {
               description={prod.description}
               price={prod.price}
               image={prod.imageUrl}
-              onAddToCart={() => alert(`Added ${prod.name} to cart!`)}
             />
           ))}
         </div>

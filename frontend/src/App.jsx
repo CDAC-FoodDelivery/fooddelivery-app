@@ -12,6 +12,7 @@ import Payment from "./pages/Payment";
 import HotelsPage from "./pages/HotelPage";
 import AdminDashboard from "./pages/AdminDashboard"
 import RiderDashboard from "./pages/RiderDashboard"
+import CartPage from "./pages/CartPage"
 
 function App() {
   return (
@@ -21,7 +22,8 @@ function App() {
         {/* Public routes (NO layout) */}
         <Route path="/" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/home" element={<HotelsPage />} />          { /*Hotel page is home page hence /home*/}
+        <Route path="/home" element={<HotelsPage />} />         { /*Hotel page is home page hence /home*/}
+         <Route path="/cart" element={<CartPage />} />
         {/* Layout routes */}
         <Route element={<MainLayout />}>
           <Route path="/product/:hotelId" element={<ProductsPage />} />
@@ -31,6 +33,7 @@ function App() {
         </Route>
         <Route path="/adminDashboard" element={<AdminDashboard />} />
         <Route path="/riderDashboard" element={<RiderDashboard />} />
+        
 
       </Routes>
     </BrowserRouter>
