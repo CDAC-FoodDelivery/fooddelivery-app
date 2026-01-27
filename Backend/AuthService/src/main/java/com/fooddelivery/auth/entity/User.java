@@ -32,4 +32,7 @@ public class User {
     private String location;
 
     private String role; // "USER", "ADMIN"
+
+    @Column(name = "restaurant_id")
+    private Long restaurantId;
 }

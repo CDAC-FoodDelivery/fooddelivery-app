@@ -50,11 +50,16 @@ public class AuthService {
         User existingUser = repository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (updatedUser.getName() != null) existingUser.setName(updatedUser.getName());
-        if (updatedUser.getPhone() != null) existingUser.setPhone(updatedUser.getPhone());
-        if (updatedUser.getAddress() != null) existingUser.setAddress(updatedUser.getAddress());
-        if (updatedUser.getPincode() != null) existingUser.setPincode(updatedUser.getPincode());
-        if (updatedUser.getLocation() != null) existingUser.setLocation(updatedUser.getLocation());
+        if (updatedUser.getName() != null)
+            existingUser.setName(updatedUser.getName());
+        if (updatedUser.getPhone() != null)
+            existingUser.setPhone(updatedUser.getPhone());
+        if (updatedUser.getAddress() != null)
+            existingUser.setAddress(updatedUser.getAddress());
+        if (updatedUser.getPincode() != null)
+            existingUser.setPincode(updatedUser.getPincode());
+        if (updatedUser.getLocation() != null)
+            existingUser.setLocation(updatedUser.getLocation());
 
         return repository.save(existingUser);
     }
@@ -63,6 +68,10 @@ public class AuthService {
         String email = jwtUtils.extractUsername(token);
         return repository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    public User getUserByEmail(String email) {
+        return repository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
     }
 
 }

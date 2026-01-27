@@ -22,11 +22,16 @@ function HotelDashboard() {
 
     // Base URL for Hotel Service (Spring Boot)
     const API_URL = "http://localhost:8081/api/hotel";
-    // Hardcoded Hotel ID for prototype
-    const HOTEL_ID = 1;
+
+    // Get Hotel ID from localStorage
+    const HOTEL_ID = localStorage.getItem("restaurantId");
 
     useEffect(() => {
-        fetchMenus();
+        if (HOTEL_ID) {
+            fetchMenus();
+        } else {
+            // If no hotel ID, we can't fetch menus.
+        }
     }, [activeTab]);
 
     const fetchMenus = async () => {

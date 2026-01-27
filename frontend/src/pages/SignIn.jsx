@@ -12,14 +12,29 @@ function SignIn() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("http://localhost:8083/auth/login", {
+      const res = await axios.post("http://localhost:8083/auth/login", {
         username: email,
         password: password,
       });
-      if (response.data) {
-        localStorage.setItem("token", response.data);
+      // Handle both string (old) and object (new) responses for safety
+      const data = res.data;
+      if (typeof data === "string") {
+        localStorage.setItem("token", data);
         toast.success("Login Successful");
         navigate("/home");
+      } else if (data && data.token) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("role", data.role);
+        localStorage.setItem("restaurantId", data.restaurantId || "");
+
+        toast.success("Login Successful");
+        if (data.role === "HOTEL") {
+          navigate("/hotelDashboard");
+        } else if (data.role === "ADMIN") {
+          navigate("/adminDashboard");
+        } else {
+          navigate("/home");
+        }
       }
     } catch (error) {
       console.error("Login failed", error);

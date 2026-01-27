@@ -27,18 +27,24 @@ public class AuthController {
         return ResponseEntity.ok(authService.saveUser(user));
     }
 
-
     @PostMapping("/login")
-    public String getToken(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<java.util.Map<String, Object>> getToken(@RequestBody AuthRequest authRequest) {
         Authentication authenticate = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
         if (authenticate.isAuthenticated()) {
-            return authService.generateToken(authRequest.getUsername());
+            String token = authService.generateToken(authRequest.getUsername());
+            User user = authService.getUserByEmail(authRequest.getUsername());
+
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            response.put("token", token);
+            response.put("role", user.getRole());
+            response.put("userId", user.getId());
+            response.put("restaurantId", user.getRestaurantId());
+            return ResponseEntity.ok(response);
         } else {
             throw new RuntimeException("invalid access");
         }
     }
-
 
     @GetMapping("/validate")
     public String validateToken(@RequestParam("token") String token) {

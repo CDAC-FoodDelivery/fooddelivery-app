@@ -117,7 +117,8 @@
 }
 
 .delete {
-    background: #e63946;
+    background: #ff6b35;
+    /* Orange to match request */
     border: none;
     padding: 10px 16px;
     border-radius: 8px;
@@ -128,7 +129,7 @@
 }
 
 .delete:hover {
-    background: #c5303f;
+    background: #e55a2b;
 }
 
 .add-btn {

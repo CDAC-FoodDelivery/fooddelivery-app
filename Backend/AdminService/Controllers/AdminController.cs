@@ -58,19 +58,7 @@ namespace AdminService.Controllers
                     return BadRequest("User with this email already exists.");
                 }
 
-                var user = new AppUser
-                {
-                    Name = dto.Name,
-                    Email = dto.Email,
-                    Role = "HOTEL",
-                    Address = dto.City,
-                    Phone = dto.Phone,
-                    Password = BCrypt.Net.BCrypt.HashPassword(password)
-                };
-
-                _context.AppUsers.Add(user);
-                await _context.SaveChangesAsync();
-
+                // 1. Create Restaurant First
                 var restaurant = new Restaurant
                 {
                     Name = dto.Name,
@@ -79,10 +67,25 @@ namespace AdminService.Controllers
                     Cuisine = string.IsNullOrEmpty(dto.Cuisine) ? "Multi-Cuisine" : dto.Cuisine,
                     Rating = 0,
                     Price = 200,
-                    ImageUrl = "https://placehold.co/600x400" // Ensure this is set
+                    ImageUrl = "https://placehold.co/600x400"
                 };
 
                 _context.Restaurants.Add(restaurant);
+                await _context.SaveChangesAsync(); // Commit to get ID
+
+                // 2. Create User linked to Restaurant
+                var user = new AppUser
+                {
+                    Name = dto.Name,
+                    Email = dto.Email,
+                    Role = "HOTEL",
+                    Address = dto.City,
+                    Phone = dto.Phone,
+                    Password = BCrypt.Net.BCrypt.HashPassword(password),
+                    RestaurantId = restaurant.Id // Link here
+                };
+
+                _context.AppUsers.Add(user);
                 await _context.SaveChangesAsync();
 
                 await transaction.CommitAsync();
