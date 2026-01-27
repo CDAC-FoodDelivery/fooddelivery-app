@@ -7,6 +7,6 @@ namespace AdminService.Dtos
         public string Email { get; set; }
         public string Phone { get; set; }
         public string Cuisine { get; set; }
-        public string Password { get; set; } // If admin provides it, else auto-generated
+        public string Password { get; set; }
     }
 }

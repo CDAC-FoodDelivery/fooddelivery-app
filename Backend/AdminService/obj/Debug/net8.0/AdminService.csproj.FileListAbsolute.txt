@@ -23,11 +23,6 @@ F:\CDAC_Project\fooddelivery-app\Backend\AdminService\obj\Debug\net8.0\AdminServ
 F:\CDAC_Project\fooddelivery-app\Backend\AdminService\obj\Debug\net8.0\AdminService.sourcelink.json
 F:\CDAC_Project\fooddelivery-app\Backend\AdminService\obj\Debug\net8.0\staticwebassets.build.json
 F:\CDAC_Project\fooddelivery-app\Backend\AdminService\obj\Debug\net8.0\staticwebassets.development.json
-F:\CDAC_Project\fooddelivery-app\Backend\AdminService\obj\Debug\net8.0\staticwebassets\msbuild.AdminService.Microsoft.AspNetCore.StaticWebAssets.props
-F:\CDAC_Project\fooddelivery-app\Backend\AdminService\obj\Debug\net8.0\staticwebassets\msbuild.build.AdminService.props
-F:\CDAC_Project\fooddelivery-app\Backend\AdminService\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.AdminService.props
-F:\CDAC_Project\fooddelivery-app\Backend\AdminService\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.AdminService.props
-F:\CDAC_Project\fooddelivery-app\Backend\AdminService\obj\Debug\net8.0\staticwebassets.pack.json
 F:\CDAC_Project\fooddelivery-app\Backend\AdminService\obj\Debug\net8.0\scopedcss\bundle\AdminService.styles.css
 F:\CDAC_Project\fooddelivery-app\Backend\AdminService\obj\Debug\net8.0\AdminSer.1AF7464D.Up2Date
 F:\CDAC_Project\fooddelivery-app\Backend\AdminService\obj\Debug\net8.0\AdminService.dll
@@ -48,3 +43,11 @@ F:\CDAC_Project\fooddelivery-app\Backend\AdminService\bin\Debug\net8.0\Microsoft
 F:\CDAC_Project\fooddelivery-app\Backend\AdminService\bin\Debug\net8.0\MySqlConnector.dll
 F:\CDAC_Project\fooddelivery-app\Backend\AdminService\bin\Debug\net8.0\Pomelo.EntityFrameworkCore.MySql.dll
 F:\CDAC_Project\fooddelivery-app\Backend\AdminService\bin\Debug\net8.0\System.Diagnostics.DiagnosticSource.dll
+F:\CDAC_Project\fooddelivery-app\Backend\AdminService\bin\Debug\net8.0\AdminService.staticwebassets.endpoints.json
+F:\CDAC_Project\fooddelivery-app\Backend\AdminService\bin\Debug\net8.0\BCrypt.Net-Next.dll
+F:\CDAC_Project\fooddelivery-app\Backend\AdminService\obj\Debug\net8.0\rpswa.dswa.cache.json
+F:\CDAC_Project\fooddelivery-app\Backend\AdminService\obj\Debug\net8.0\rjimswa.dswa.cache.json
+F:\CDAC_Project\fooddelivery-app\Backend\AdminService\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
+F:\CDAC_Project\fooddelivery-app\Backend\AdminService\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json
+F:\CDAC_Project\fooddelivery-app\Backend\AdminService\obj\Debug\net8.0\staticwebassets.build.json.cache
+F:\CDAC_Project\fooddelivery-app\Backend\AdminService\obj\Debug\net8.0\staticwebassets.build.endpoints.json

@@ -82,13 +82,13 @@ body {
   background: white;
   padding: 22px;
   border-radius: 14px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 12px 25px rgba(0,0,0,0.1);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
 }
 
 .restaurant-card {
@@ -120,7 +120,7 @@ body {
 
 
 .update {
-  background: #f4a261;
+  background: #ff6b35;
   border: none;
   padding: 10px 16px;
   border-radius: 8px;
@@ -131,12 +131,12 @@ body {
 }
 
 .update:hover {
-  background: #f19547;
+  background: #e55a2b;
 }
 
 
 .status-btn {
-  background: #6c63ff;
+  background: #ff6b35;
   border: none;
   padding: 10px 20px;
   border-radius: 8px;
@@ -149,7 +149,7 @@ body {
 }
 
 .status-btn:hover {
-  background: #574fd6;
+  background: #e55a2b;
   transform: translateY(-2px);
 }
 
@@ -189,4 +189,89 @@ body {
   border-radius: 16px;
   background: linear-gradient(135deg, #ff6b35, #ff8f5c);
   color: #fff;
+}
+
+.btn-orange {
+  background-color: #ff6b35 !important;
+  border: none !important;
+  color: white !important;
+}
+
+.btn-orange:hover {
+  background-color: #e55a2b !important;
+}
+
+input:focus,
+.form-control:focus {
+  border-color: #ff6b35 !important;
+  box-shadow: 0 0 0 0.25rem rgba(255, 107, 53, 0.25) !important;
+}
+
+::selection {
+  background: #ff6b35;
+  color: white;
+}
+
+button:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.4) !important;
+}
+
+/* Force Bootstrap Primary Buttons to Orange */
+.btn-primary {
+  --bs-btn-bg: #ff6b35 !important;
+  --bs-btn-border-color: #ff6b35 !important;
+  --bs-btn-hover-bg: #e55a2b !important;
+  --bs-btn-hover-border-color: #e55a2b !important;
+  --bs-btn-active-bg: #d94e1f !important;
+  --bs-btn-active-border-color: #d94e1f !important;
+  background-color: #ff6b35 !important;
+  border-color: #ff6b35 !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+  background-color: #e55a2b !important;
+  border-color: #e55a2b !important;
+}
+
+.btn:focus,
+.btn:active:focus,
+.btn.active:focus,
+.btn.show:focus,
+.btn-primary:focus {
+  box-shadow: 0 0 0 0.25rem rgba(255, 107, 53, 0.4) !important;
+}
+
+.btn-close:focus {
+  box-shadow: 0 0 0 0.25rem rgba(255, 107, 53, 0.25) !important;
+}
+
+a {
+  color: #ff6b35 !important;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #e55a2b !important;
+}
+
+/* Catch-all for any other buttons */
+.btn-outline-primary {
+  --bs-btn-color: #ff6b35 !important;
+  --bs-btn-border-color: #ff6b35 !important;
+  --bs-btn-hover-bg: #ff6b35 !important;
+  --bs-btn-hover-border-color: #ff6b35 !important;
+  --bs-btn-active-bg: #ff6b35 !important;
+  --bs-btn-active-border-color: #ff6b35 !important;
+}
+
+.modal-header .btn-close {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.modal-header .btn-close:focus {
+  box-shadow: 0 0 0 0.25rem rgba(255, 107, 53, 0.25) !important;
 }

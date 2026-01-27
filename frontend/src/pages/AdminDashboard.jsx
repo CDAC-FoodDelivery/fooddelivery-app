@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "./AdminDashboard.css";
 import axios from "axios";
+import { Modal, Button, Form } from "react-bootstrap";
+import { toast } from "react-toastify";
 
 function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("orders");
@@ -9,6 +11,17 @@ function AdminDashboard() {
   const [restaurants, setRestaurants] = useState([]);
   const [users, setUsers] = useState([]);
   const [insights, setInsights] = useState({ orders: 0, restaurants: 0, users: 0, revenue: 0 });
+
+  // Modal State
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    city: "",
+    email: "",
+    phone: "",
+    cuisine: "",
+    password: ""
+  });
 
   const API_URL = "http://localhost:5102/api/admin";
 
@@ -33,41 +46,43 @@ function AdminDashboard() {
       }
     } catch (error) {
       console.error("Error fetching data", error);
+      toast.error("Failed to fetch data.");
     }
   };
 
-  const handleAddRestaurant = async () => {
-    // Demo values, ideally this should come from a form modal
-    const newRestaurant = {
-      name: "New Restaurant " + Math.floor(Math.random() * 100),
-      city: "Pune",
-      email: "test_hotel_" + Math.floor(Math.random() * 100) + "@mail.com",
-      phone: "9876543210",
-      cuisine: "Indian",
-      password: "" // will be auto-generated
-    };
+  // Handle Input Change for Form
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // Submit New Restaurant
+  const handleSubmitRestaurant = async (e) => {
+    e.preventDefault();
     try {
-      const res = await axios.post(`${API_URL}/restaurants`, newRestaurant);
-      // The backend returns the Restaurant object, so we can display it directly
+      const res = await axios.post(`${API_URL}/restaurants`, formData);
       setRestaurants([...restaurants, res.data]);
-      alert("Restaurant and User added! Credentials sent to email.");
+      toast.success("Restaurant and User added! Credentials sent to email.");
+      setShowModal(false);
+      setFormData({ name: "", city: "", email: "", phone: "", cuisine: "", password: "" }); // Reset form
     } catch (error) {
       console.error("Error adding restaurant", error);
-      alert("Failed to add restaurant: " + (error.response?.data || error.message));
+      toast.error("Failed to add restaurant: " + (error.response?.data || error.message));
     }
   };
 
   const handleDeleteRestaurant = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this restaurant?")) return;
     try {
       await axios.delete(`${API_URL}/restaurants/${id}`);
       setRestaurants(restaurants.filter((r) => r.id !== id));
+      toast.success("Restaurant deleted successfully.");
     } catch (error) {
       console.error("Error deleting restaurant", error);
+      toast.error("Failed to delete restaurant.");
     }
   };
 
   const handleUpdateRestaurant = async (id) => {
-    // Simple toggle status for demo
     const restaurant = restaurants.find(r => r.id === id);
     if (!restaurant) return;
 
@@ -75,8 +90,10 @@ function AdminDashboard() {
     try {
       await axios.put(`${API_URL}/restaurants/${id}`, updated);
       setRestaurants(restaurants.map(r => r.id === id ? updated : r));
+      toast.success(`Restaurant is now ${updated.status}`);
     } catch (error) {
       console.error("Error updating restaurant", error);
+      toast.error("Failed to update status.");
     }
   };
 
@@ -87,7 +104,6 @@ function AdminDashboard() {
         <p>Food Delivery Management</p>
       </header>
 
-      {/* Navigation Tabs */}
       <nav className="tabs">
         <button className={activeTab === "orders" ? "active" : ""} onClick={() => setActiveTab("orders")}>
           Orders
@@ -120,7 +136,7 @@ function AdminDashboard() {
           <>
             <div className="section-header">
               <h2>Restaurants</h2>
-              <button className="add-btn" onClick={handleAddRestaurant}>＋ Add Restaurant</button>
+              <button className="add-btn" onClick={() => setShowModal(true)}>＋ Add Restaurant</button>
             </div>
 
             <div className="grid">
@@ -129,6 +145,7 @@ function AdminDashboard() {
                   <div>
                     <h3>{r.name}</h3>
                     <p>{r.city}</p>
+                    <p className="text-muted small">{r.cuisine}</p>
                     <span className="badge">{r.status}</span>
                   </div>
 
@@ -148,6 +165,7 @@ function AdminDashboard() {
               <div className="card" key={u.id}>
                 <h3>{u.name}</h3>
                 <p>Role: {u.role}</p>
+                <p>{u.email}</p>
               </div>
             ))}
           </div>
@@ -162,9 +180,100 @@ function AdminDashboard() {
           </div>
         )}
       </section>
+
+      {/* Add Restaurant Modal */}
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Add New Restaurant</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={handleSubmitRestaurant}>
+            <Form.Group className="mb-3">
+              <Form.Label>Restaurant Name</Form.Label>
+              <Form.Control
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
+                placeholder="Ex: Spice Garden"
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Owner Email</Form.Label>
+              <Form.Control
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
+                placeholder="owner@example.com"
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Password</Form.Label>
+              <Form.Control
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                required
+                placeholder="Secure Password"
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>City</Form.Label>
+              <Form.Control
+                type="text"
+                name="city"
+                value={formData.city}
+                onChange={handleInputChange}
+                required
+                placeholder="Ex: Pune"
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Phone</Form.Label>
+              <Form.Control
+                type="text"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                required
+                placeholder="Ex: 9876543210"
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Cuisine</Form.Label>
+              <Form.Control
+                type="text"
+                name="cuisine"
+                value={formData.cuisine}
+                onChange={handleInputChange}
+                required
+                placeholder="Ex: Indian, Chinese"
+              />
+            </Form.Group>
+
+            <div className="d-flex justify-content-end gap-2">
+              <Button variant="secondary" onClick={() => setShowModal(false)}>
+                Cancel
+              </Button>
+              <Button className="btn-orange" type="submit">
+                Add Restaurant
+              </Button>
+            </div>
+          </Form>
+        </Modal.Body>
+      </Modal>
+
     </div>
   );
-
 }
 
 export default AdminDashboard;

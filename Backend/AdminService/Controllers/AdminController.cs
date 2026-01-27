@@ -18,14 +18,14 @@ namespace AdminService.Controllers
             _context = context;
         }
 
-        // --- Orders ---
+
         [HttpGet("orders")]
         public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
         {
             return await _context.Orders.ToListAsync();
         }
 
-        // --- Restaurants ---
+
         [HttpGet("restaurants")]
         public async Task<ActionResult<IEnumerable<Restaurant>>> GetRestaurants()
         {
@@ -43,71 +43,74 @@ namespace AdminService.Controllers
         [HttpPost("restaurants")]
         public async Task<ActionResult> AddRestaurant([FromBody] AddRestaurantDto dto, [FromServices] IEmailService emailService)
         {
-            // 1. Create User
-            var password = dto.Password;
-            if (string.IsNullOrEmpty(password))
-            {
-                // Generate random password if not provided
-                password = Guid.NewGuid().ToString().Substring(0, 8);
-            }
-
-            // Ideally perform check if email exists
-            var existingUser = await _context.AppUsers.FirstOrDefaultAsync(u => u.Email == dto.Email);
-            if (existingUser != null)
-            {
-                return BadRequest("User with this email already exists.");
-            }
-
-            // Hashing password (Use BCrypt in real app, simply storing for now as per minimal requirment or mock)
-            // Assuming current stored passwords are hashed with BCrypt as seen in logs ($2a$10$...)
-            // Just Storing Plain text for this demo unless we pull in BCrypt.Net-Next
-            // Todo: Hash Password
-
-            var user = new AppUser
-            {
-                Name = dto.Name,
-                Email = dto.Email,
-                Role = "HOTEL",
-                Address = dto.City,
-                Phone = dto.Phone,
-                Password = password // Should be hashed
-            };
-
-            _context.AppUsers.Add(user);
-            await _context.SaveChangesAsync(); 
-
-            // 2. Create Restaurant
-            var restaurant = new Restaurant
-            {
-                Name = dto.Name,
-                City = dto.City,
-                Status = "Open",
-                Cuisine = string.IsNullOrEmpty(dto.Cuisine) ? "Multi-Cuisine" : dto.Cuisine,
-                Rating = 0,
-                Price = 200
-            };
-            
-            _context.Restaurants.Add(restaurant);
-            await _context.SaveChangesAsync();
-
-            // 3. Send Email
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var subject = "Welcome to FoodDelivery - Restaurant Partner";
-                var body = $"<h3>Hello {dto.Name},</h3><p>Your restaurant has been registered successfully.</p>" +
-                           $"<p><b>Username:</b> {dto.Email}</p>" +
-                           $"<p><b>Password:</b> {password}</p>" +
-                           $"<p>Please login and change your password.</p>";
-                
-                await emailService.SendEmailAsync(dto.Email, subject, body);
+                var password = dto.Password;
+                if (string.IsNullOrEmpty(password))
+                {
+                    password = Guid.NewGuid().ToString().Substring(0, 8);
+                }
+
+                var existingUser = await _context.AppUsers.FirstOrDefaultAsync(u => u.Email == dto.Email);
+                if (existingUser != null)
+                {
+                    return BadRequest("User with this email already exists.");
+                }
+
+                var user = new AppUser
+                {
+                    Name = dto.Name,
+                    Email = dto.Email,
+                    Role = "HOTEL",
+                    Address = dto.City,
+                    Phone = dto.Phone,
+                    Password = BCrypt.Net.BCrypt.HashPassword(password)
+                };
+
+                _context.AppUsers.Add(user);
+                await _context.SaveChangesAsync();
+
+                var restaurant = new Restaurant
+                {
+                    Name = dto.Name,
+                    City = dto.City,
+                    Status = "Open",
+                    Cuisine = string.IsNullOrEmpty(dto.Cuisine) ? "Multi-Cuisine" : dto.Cuisine,
+                    Rating = 0,
+                    Price = 200,
+                    ImageUrl = "https://placehold.co/600x400" // Ensure this is set
+                };
+
+                _context.Restaurants.Add(restaurant);
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                try
+                {
+                    var subject = "Welcome to FoodDelivery - Restaurant Partner";
+                    var body = $"<h3>Hello {dto.Name},</h3><p>Your restaurant has been registered successfully.</p>" +
+                               $"<p><b>Username:</b> {dto.Email}</p>" +
+                               $"<p><b>Password:</b> {password}</p>" +
+                               $"<p>Please login and change your password.</p>";
+
+                    await emailService.SendEmailAsync(dto.Email, subject, body);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to send email: {ex.Message}");
+                    // Do not fail the request if only email fails, but log it.
+                }
+
+                return CreatedAtAction(nameof(GetRestaurant), new { id = restaurant.Id }, restaurant);
             }
             catch (Exception ex)
             {
-                // Log email failure but don't fail the request completely
-                Console.WriteLine($"Failed to send email: {ex.Message}");
+                await transaction.RollbackAsync();
+                // Return the detailed error message to help debug
+                return StatusCode(500, $"Internal Server Error: {ex.Message} {ex.InnerException?.Message}");
             }
-
-            return CreatedAtAction(nameof(GetRestaurant), new { id = restaurant.Id }, restaurant);
         }
 
         [HttpPut("restaurants/{id}")]
@@ -136,29 +139,37 @@ namespace AdminService.Controllers
             return NoContent();
         }
 
-        // --- Users ---
+
         [HttpGet("users")]
         public async Task<ActionResult<IEnumerable<AppUser>>> GetUsers()
         {
             return await _context.AppUsers.ToListAsync();
         }
 
-        // --- Insights ---
+
         [HttpGet("insights")]
         public async Task<ActionResult<object>> GetInsights()
         {
-            var ordersCount = await _context.Orders.CountAsync();
-            var restaurantsCount = await _context.Restaurants.CountAsync();
-            var usersCount = await _context.AppUsers.CountAsync();
-            var revenue = await _context.Orders.SumAsync(o => o.Amount);
-
-            return new
+            try
             {
-                Orders = ordersCount,
-                Restaurants = restaurantsCount,
-                Users = usersCount,
-                Revenue = revenue
-            };
+                var ordersCount = await _context.Orders.CountAsync();
+                var restaurantsCount = await _context.Restaurants.CountAsync();
+                var usersCount = await _context.AppUsers.CountAsync();
+                var revenue = await _context.Orders.SumAsync(o => (decimal?)o.Amount) ?? 0;
+
+                return new
+                {
+                    Orders = ordersCount,
+                    Restaurants = restaurantsCount,
+                    Users = usersCount,
+                    Revenue = revenue
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching insights: {ex.Message}");
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
         }
     }
 }

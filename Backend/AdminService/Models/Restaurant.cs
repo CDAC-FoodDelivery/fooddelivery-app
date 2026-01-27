@@ -11,8 +11,7 @@ namespace AdminService.Models
         [Column("location")]
         public string City { get; set; } 
         
-        // This column might not exist in hotels, admin needs to add it or ignore it
-        // We will assume user will add it via SQL
+
         public string Status { get; set; } = "Open";
 
         public string Cuisine { get; set; } = "Multicuisine";
