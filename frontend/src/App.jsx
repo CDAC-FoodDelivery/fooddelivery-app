@@ -13,6 +13,7 @@ import ProductsPage from "./pages/ProductsPage";
 import Payment from "./pages/Payment";
 import AdminDashboard from "./pages/AdminDashboard";
 import RiderDashboard from "./pages/RiderDashboard";
+import HotelDashboard from "./pages/HotelDashboard";
 import CartPage from "./pages/CartPage";
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
 
         <Route path="/adminDashboard" element={<AdminDashboard />} />
         <Route path="/riderDashboard" element={<RiderDashboard />} />
+        <Route path="/hotelDashboard" element={<HotelDashboard />} />
       </Routes>
     </BrowserRouter>
   );

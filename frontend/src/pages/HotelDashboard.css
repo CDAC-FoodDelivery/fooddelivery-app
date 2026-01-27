@@ -1,0 +1,163 @@
+/* Similar to AdminDashboard.css but targeted for HotelDashboard */
+.hotel-page {
+    min-height: 100vh;
+    background: #fdf6f1;
+}
+
+.hotel-header {
+    padding: 30px 50px;
+    background: linear-gradient(90deg, #ff6b35, #ff8f5c);
+    color: white;
+}
+
+.hotel-header h1 {
+    margin: 0;
+    font-size: 32px;
+}
+
+.hotel-header p {
+    margin-top: 6px;
+    opacity: 0.9;
+}
+
+/* Reusing tabs style */
+.tabs {
+    display: flex;
+    gap: 12px;
+    padding: 20px 50px;
+    background: white;
+    border-bottom: 1px solid #eee;
+}
+
+.tabs button {
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    font-weight: 600;
+    cursor: pointer;
+    color: #555;
+}
+
+.tabs button.active {
+    background: #ff6b35;
+    color: white;
+}
+
+.content {
+    padding: 40px 50px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.section-header h2 {
+    margin: 0;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.card {
+    background: white;
+    padding: 22px;
+    border-radius: 14px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
+}
+
+.menu-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+.badge {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 5px 12px;
+    background: #ff6b35;
+    color: white;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.badge.veg {
+    background: #28a745;
+}
+
+.badge.non-veg {
+    background: #dc3545;
+}
+
+.card-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.delete {
+    background: #e63946;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    font-weight: 600;
+    flex: 1;
+}
+
+.delete:hover {
+    background: #c5303f;
+}
+
+.add-btn {
+    background: #ff6b35;
+    color: white;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.add-btn:hover {
+    background: #e55a2b;
+}
+
+/* Bootstrap Overrides */
+.btn-orange {
+    background-color: #ff6b35 !important;
+    border: none !important;
+    color: white !important;
+}
+
+.btn-orange:hover {
+    background-color: #e55a2b !important;
+}
+
+input:focus,
+.form-control:focus {
+    border-color: #ff6b35 !important;
+    box-shadow: 0 0 0 0.25rem rgba(255, 107, 53, 0.25) !important;
+}

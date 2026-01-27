@@ -1,0 +1,5 @@
+com\cdac\hotelservice\HotelServiceApplication.class
+com\cdac\hotelservice\repository\MenuRepository.class
+com\cdac\hotelservice\service\MenuService.class
+com\cdac\hotelservice\entity\Menu.class
+com\cdac\hotelservice\controller\HotelController.class
