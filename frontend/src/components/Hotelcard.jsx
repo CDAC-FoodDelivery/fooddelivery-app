@@ -4,7 +4,7 @@ import { StarFill } from "react-bootstrap-icons";
 
 const HotelCard = ({ name, rating, cuisine, location, image, offers }) => {
   return (
-    <div className="hotel-card">
+    <div className="hotel-card" style={{ pointerEvents: "none" }}> {/* ✅ Key fix! */}
       <div className="image-wrapper">
         <img src={image} alt={name} />
         {offers?.length > 0 && (
@@ -14,13 +14,11 @@ const HotelCard = ({ name, rating, cuisine, location, image, offers }) => {
 
       <div className="card-body">
         <h6 className="hotel-name">{name}</h6>
-
         <div className="rating-time">
           <span className="rating">
             <StarFill size={12} /> {rating}
           </span>
         </div>
-
         <p className="cuisine">{cuisine}</p>
         <p className="location">{location}</p>
       </div>

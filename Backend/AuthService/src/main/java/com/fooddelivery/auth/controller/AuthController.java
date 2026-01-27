@@ -45,4 +45,20 @@ public class AuthController {
         authService.validateToken(token);
         return "Token is valid";
     }
+
+    @GetMapping("/profile")
+    public ResponseEntity<User> getProfile(@RequestHeader("Authorization") String token) {
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+        return ResponseEntity.ok(authService.getUserProfile(token));
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<User> updateProfile(@RequestHeader("Authorization") String token, @RequestBody User user) {
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+        return ResponseEntity.ok(authService.updateUser(token, user));
+    }
 }

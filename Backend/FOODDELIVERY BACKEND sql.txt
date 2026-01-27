@@ -1,7 +1,3 @@
-FOODDELIVERY BACKEND 
-
-fooddelivery database and hotels table will be created by hibernate  change your username  password in application.propertise
-after running just populate the table using following script
 
 
 

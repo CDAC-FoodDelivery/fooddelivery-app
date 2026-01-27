@@ -1,23 +1,6 @@
-MENU-BACKEND sql file
+
 
 database name fooddelivery ;
-
-table and database will be get created by spring boot hibernate
-
-then populate table with following script in MySQL console
-
-
-
-
-
-
-
-
-
-
-
-
-hotel 1..................................................
 
 INSERT INTO menu 
 (category, description, food_type, hotel_id, image_url, is_available, name, price)
@@ -35,8 +18,6 @@ VALUES
  b'1', 'White Sauce Pasta', 279);
 
 
-hotel 2..................................................
-
 INSERT INTO menu 
 (category, description, food_type, hotel_id, image_url, is_available, name, price)
 VALUES
@@ -53,7 +34,7 @@ VALUES
  b'1', 'French Fries', 99);
 
 
-hotel3..................................................................
+
 INSERT INTO menu 
 (category, description, food_type, hotel_id, image_url, is_available, name, price)
 VALUES

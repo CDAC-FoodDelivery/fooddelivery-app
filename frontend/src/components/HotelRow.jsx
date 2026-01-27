@@ -10,19 +10,16 @@ const HotelsRow = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8081/api/hotels") // Your backend endpoint
+      .get("http://localhost:8081/api/hotels")
       .then((response) => {
-        // Map backend JSON fields to HotelCard props
         const hotelData = response.data.map((hotel) => ({
           id: hotel.id,
           name: hotel.name,
           rating: hotel.rating,
           cuisine: hotel.cuisine,
           location: hotel.location,
-          image: hotel.imageUrl, // <-- map 'imageUrl' to 'image'
-          offers: hotel.offers || [], // in case you add offers later
+          image: hotel.imageUrl,
         }));
-
         setHotels(hotelData);
         setLoading(false);
       })
@@ -33,25 +30,32 @@ const HotelsRow = () => {
       });
   }, []);
 
-  if (loading) return <p>Loading hotels...</p>;
-  if (error) return <p>{error}</p>;
+  if (loading) return <div className="text-center p-5">Loading hotels...</div>;
+  if (error) return <div className="text-center p-5 text-danger">{error}</div>;
 
   return (
-    <div className="mt-4">
-      <h5 className="fw-bold mb-3">Discover best restaurants</h5>
+    <div className="mt-3">
+      <h2 className="fw-bold mb-4 text-center">Discover restaurants...</h2>
 
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
           gap: "25px",
+          padding: "0 20px",
         }}
       >
         {hotels.map((hotel) => (
           <Link
             key={hotel.id}
-            to={`/product/${hotel.id}`} // clickable card
-            style={{ textDecoration: "none", color: "inherit" }}
+            to={`/home/hotel/${hotel.id}/menu`} // ✅ Matches nested route
+            className="hotel-link"
+            style={{
+              textDecoration: "none",
+              color: "inherit",
+              display: "block",
+              width: "100%",
+            }}
           >
             <HotelCard {...hotel} />
           </Link>

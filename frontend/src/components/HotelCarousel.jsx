@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import TypingText from "./TypingText"; // Import your TypingText component (adjust path if needed)
+import TypingText from "./TypingText";
 
 const slides = [
-  
   "https://images.pexels.com/photos/315755/pexels-photo-315755.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260",
   "https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260",
   "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260",
@@ -15,22 +14,18 @@ const HotelCarousel = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       setIndex((prev) => (prev + 1) % slides.length);
-    }, 3000); // Increased interval to 3s for better visibility with typing (adjust as needed)
+    }, 3000);
     return () => clearInterval(timer);
   }, []);
 
   return (
     <div
       style={{
-        // marginLeft: 200,
-        // marginTop: 70,
-        // marginRight: 100,
         width: "100%",
-        height: "700px",
+        height: "550px",        // ✅ Standard app hero height
         overflow: "hidden",
-        borderRadius: "20px",
-        marginBottom: "32px",
-        position: "relative", // Make container relative for absolute positioning
+        marginBottom: "24px",   // ✅ Standard spacing
+        position: "relative",
       }}
     >
       <img
@@ -38,35 +33,35 @@ const HotelCarousel = () => {
         alt="Hotel slide"
         style={{
           width: "100%",
-          height: "100%",
+          height: "100%",        // ✅ Full container height
           objectFit: "cover",
-          transition: "opacity 0.8s ease", // Changed to opacity for smoother fade (optional)
-          opacity: 1, // Ensures full opacity after transition
+          transition: "opacity 0.8s ease",
+          opacity: 1,
         }}
       />
 
-      {/* Overlay for typing text (absolute positioned) */}
+      {/* Overlay for typing text */}
       <div
         style={{
           position: "absolute",
           top: "15%",
           left: "30%",
-          transform: "translate(-50%, -50%)", // Center the text
+          transform: "translate(-50%, -50%)",
           textAlign: "center",
-          color: "#ffffff", // White text for visibility on images
-          backgroundColor: "rgba(0, 0, 0, 0)", // Semi-transparent background for readability
+          color: "#ffffff",
+          backgroundColor: "rgba(0, 0, 0, 0)",
           padding: "20px",
           borderRadius: "20px",
-          zIndex: 2, // Above the image
-          fontSize: "2.5rem", // Large font for impact
-          width: "80%", // Adjust width as needed
+          zIndex: 2,
+          fontSize: "2.5rem",
+          width: "80%",
           maxWidth: "800px",
         }}
       >
         <TypingText
           text="Hey ! order food from nearby restaurants..."
-          speed={80} // Adjust speed for typing effect
-          style={{ fontWeight: "bold" }} // Optional styling
+          speed={80}
+          style={{ fontWeight: "bold" }}
         />
       </div>
       <br />

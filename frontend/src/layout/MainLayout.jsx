@@ -1,40 +1,37 @@
 import { Outlet, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import LeftSidebar from "../components/LeftSidebar";
-import RightSidebar from "../components/RightSidebar";
+import HotelCarousel from "../components/HotelCarousel";
+import HotelsRow from "../components/HotelRow";
+import Footer from "../components/HotelPageFooter";
 
 const MainLayout = () => {
   const location = useLocation();
-
-  // Pages where layout should be hidden
   const isPaymentPage = location.pathname === "/payment";
+  const isHotelMenuPage = location.pathname.includes("/hotel/");
 
   return (
-    <div className="min-vh-100">
-
-      {/* Navbar only for non-payment pages */}
+    <div className="min-vh-100 d-flex flex-column">
       {!isPaymentPage && <Navbar />}
 
-      <div
-        className={`d-flex ${!isPaymentPage ? "flex-row" : ""}`}
-        style={{
-          minHeight: "100vh",
-        }}
-      >
-        {/* Left Sidebar */}
+      <div className="d-flex flex-grow-1" style={{ minHeight: "100vh", paddingTop: !isPaymentPage ? 78 : 0 }}>
         {!isPaymentPage && <LeftSidebar />}
 
-        {/* Main Content */}
-        <main
-          className="flex-grow-1 p-3"
-          style={{ background: "#faf9f6" }}
-        >
-          <Outlet />
-        </main>
+        <main className="flex-grow-1" style={{ paddingLeft: !isPaymentPage ? "70px" : 0 }}>
+          {!isPaymentPage && !isHotelMenuPage && (
+            <>
+              <div className="w-100"><HotelCarousel /></div>
+              <HotelsRow />
+            </>
+          )}
 
-        {/* Right Sidebar */}
-        {!isPaymentPage && <RightSidebar />}
+          <div className="flex-grow-1">
+            <Outlet />
+          </div>
+        </main>
       </div>
+
+      {!isHotelMenuPage && <Footer />}
     </div>
   );
 };

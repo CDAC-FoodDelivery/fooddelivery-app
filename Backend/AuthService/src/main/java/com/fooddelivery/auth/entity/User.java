@@ -27,5 +27,9 @@ public class User {
 
     private String address;
 
+    private String pincode;
+
+    private String location;
+
     private String role; // "USER", "ADMIN"
 }

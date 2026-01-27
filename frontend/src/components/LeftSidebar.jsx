@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { toast } from 'react-toastify';
 // import Trending from "./pages/Trending";
 
 import {
@@ -28,10 +30,63 @@ const EditProfileModal = ({ onClose }) => {
     setProfile((p) => ({ ...p, [name]: value }));
   };
 
+  // Fetch profile on mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      try {
+        const response = await axios.get("http://localhost:8083/auth/profile", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const user = response.data;
+        setProfile({
+          name: user.name || "",
+          phone: user.phone || "",
+          address: user.address || "",
+          pincode: user.pincode || "",
+          location: user.location || "",
+        });
+      } catch (error) {
+        console.error("Error fetching profile", error);
+        // toast.error("Failed to load profile");
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  const handleSave = async () => {
+    const token = localStorage.getItem("token"); // Get latest token
+    if (!token) {
+      toast.error("You are not logged in!");
+      return;
+    }
+
+    try {
+      const response = await axios.put(
+        "http://localhost:8083/auth/profile",
+        profile,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (response.status === 200) {
+        toast.success("Profile updated successfully!");
+        onClose();
+      }
+    } catch (error) {
+      console.error("Error updating profile", error);
+      const errMsg = error.response?.data?.message || error.response?.data?.error || error.message || "Failed to update profile";
+      toast.error(`Update failed: ${errMsg}`);
+    }
+  };
+
+
   // 📍 BEST "USE CURRENT LOCATION"
   const useCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation not supported");
+      toast.error("Geolocation not supported");
       return;
     }
 
@@ -54,7 +109,7 @@ const EditProfileModal = ({ onClose }) => {
         setLocating(false);
       },
       () => {
-        alert("Unable to fetch location");
+        toast.error("Unable to fetch location");
         setLocating(false);
       },
     );
@@ -71,7 +126,7 @@ const EditProfileModal = ({ onClose }) => {
           background: "rgba(0,0,0,0.25)",
           backdropFilter: "blur(6px)",
           WebkitBackdropFilter: "blur(6px)",
-          zIndex: 150,
+          zIndex: 1100,
         }}
       />
 
@@ -87,7 +142,7 @@ const EditProfileModal = ({ onClose }) => {
           borderRadius: "20px",
           padding: "28px",
           boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
-          zIndex: 200,
+          zIndex: 1200,
         }}
       >
         <h3 style={{ marginBottom: 6 }}>Edit Profile</h3>
@@ -187,10 +242,7 @@ const EditProfileModal = ({ onClose }) => {
             Cancel
           </button>
           <button
-            onClick={() => {
-              alert("Profile updated!");
-              onClose();
-            }}
+            onClick={handleSave}
             style={btnPrimary}
           >
             Save
@@ -238,7 +290,7 @@ const LeftSidebar = () => {
           filter: showEditProfile ? "blur(4px)" : "none",
         }}
       >
-        
+
         {/* TOP */}
         <div>
           <div style={{ marginBottom: "50px" }}>
@@ -292,11 +344,14 @@ const LeftSidebar = () => {
               icon={item.icon}
               title={item.title}
               active={activeIndex === item.index && item.title !== "Logout"}
-              onClick={() =>
-                item.title === "Logout"
-                  ? alert("Logout!")
-                  : setShowEditProfile(true)
-              }
+              onClick={() => {
+                if (item.title === "Logout") {
+                  localStorage.removeItem("token");
+                  window.location.href = "/"; // Force reload to clear any memory state if necessary, or use navigate("/")
+                } else {
+                  setShowEditProfile(true);
+                }
+              }}
             />
           ))}
         </div>

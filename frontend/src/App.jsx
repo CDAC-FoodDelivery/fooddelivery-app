@@ -1,7 +1,7 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import "react-toastify/dist/ReactToastify.css"; // Import toast styles
+import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -11,33 +11,26 @@ import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import ProductsPage from "./pages/ProductsPage";
 import Payment from "./pages/Payment";
-import HotelsPage from "./pages/HotelPage";
-import AdminDashboard from "./pages/AdminDashboard"
-import RiderDashboard from "./pages/RiderDashboard"
-import CartPage from "./pages/CartPage"
+import AdminDashboard from "./pages/AdminDashboard";
+import RiderDashboard from "./pages/RiderDashboard";
+import CartPage from "./pages/CartPage";
 
 function App() {
   return (
     <BrowserRouter>
       <ToastContainer position="top-right" autoClose={3000} />
       <Routes>
-
-        {/* Public routes (NO layout) */}
         <Route path="/" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/home" element={<HotelsPage />} />         { /*Hotel page is home page hence /home*/}
-        <Route path="/cart" element={<CartPage />} />
-        {/* Layout routes */}
-        <Route element={<MainLayout />}>
-          <Route path="/product/:hotelId" element={<ProductsPage />} />
 
-          {/* <Route path="/product" element={<ProductsPage />} />*/}
-          <Route path="/payment" element={<Payment />} />
+        <Route path="/home" element={<MainLayout />}>
+          <Route path="hotel/:hotelId/menu" element={<ProductsPage />} />
+          <Route path="cart" element={<CartPage />} />
+          <Route path="payment" element={<Payment />} />
         </Route>
+
         <Route path="/adminDashboard" element={<AdminDashboard />} />
         <Route path="/riderDashboard" element={<RiderDashboard />} />
-
-
       </Routes>
     </BrowserRouter>
   );

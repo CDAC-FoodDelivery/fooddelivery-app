@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="dataSourceStorageLocal" created-in="IU-253.30387.90">
+    <data-source name="fooddelivery@localhost" uuid="40605e0b-de3f-4267-a54d-230b70e173e8">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" dbms="MYSQL" />
+      <user-name>root</user-name>
+      <schema-mapping />
+    </data-source>
+    <data-source name="fooddelivery@localhost" uuid="573ffb4c-9f78-46b8-b502-dc6e93ba0acc">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" dbms="MYSQL" />
+      <user-name>root</user-name>
+      <schema-mapping />
+    </data-source>
+    <data-source name="fooddelivery@localhost" uuid="b1137600-2924-4630-bc13-0f5178c5d3b1">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" dbms="MYSQL" />
+      <user-name>fooduser</user-name>
+      <schema-mapping />
+    </data-source>
+  </component>
+</project>

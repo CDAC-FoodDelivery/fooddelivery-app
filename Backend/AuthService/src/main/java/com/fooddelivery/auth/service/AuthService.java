@@ -45,4 +45,24 @@ public class AuthService {
         jwtUtils.validateToken(token, user.getEmail());
     }
 
+    public User updateUser(String token, User updatedUser) {
+        String email = jwtUtils.extractUsername(token);
+        User existingUser = repository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (updatedUser.getName() != null) existingUser.setName(updatedUser.getName());
+        if (updatedUser.getPhone() != null) existingUser.setPhone(updatedUser.getPhone());
+        if (updatedUser.getAddress() != null) existingUser.setAddress(updatedUser.getAddress());
+        if (updatedUser.getPincode() != null) existingUser.setPincode(updatedUser.getPincode());
+        if (updatedUser.getLocation() != null) existingUser.setLocation(updatedUser.getLocation());
+
+        return repository.save(existingUser);
+    }
+
+    public User getUserProfile(String token) {
+        String email = jwtUtils.extractUsername(token);
+        return repository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
 }
