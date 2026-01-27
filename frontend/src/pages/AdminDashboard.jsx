@@ -1,42 +1,83 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./AdminDashboard.css";
+import axios from "axios";
 
 function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("orders");
 
-  const [orders] = useState([
-    { id: 101, name: "Ravi", status: "Preparing" },
-    { id: 102, name: "Anita", status: "Placed" },
-  ]);
+  const [orders, setOrders] = useState([]);
+  const [restaurants, setRestaurants] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [insights, setInsights] = useState({ orders: 0, restaurants: 0, users: 0, revenue: 0 });
 
-  const [restaurants, setRestaurants] = useState([
-    { id: 1, name: "Spice Hub", city: "Pune", status: "Open" },
-    { id: 2, name: "Food Fiesta", city: "Mumbai", status: "Closed" },
-  ]);
+  const API_URL = "http://localhost:5102/api/admin";
 
-  const [users] = useState([
-    { id: 1, name: "Rahul", role: "Customer" },
-    { id: 2, name: "Admin", role: "Admin" },
-  ]);
+  useEffect(() => {
+    fetchData();
+  }, [activeTab]);
 
-  const handleAddRestaurant = () => {
-    setRestaurants([
-      ...restaurants,
-      {
-        id: Date.now(),
-        name: "New Restaurant",
-        city: "City",
-        status: "Open",
-      },
-    ]);
+  const fetchData = async () => {
+    try {
+      if (activeTab === "orders") {
+        const res = await axios.get(`${API_URL}/orders`);
+        setOrders(res.data);
+      } else if (activeTab === "restaurants") {
+        const res = await axios.get(`${API_URL}/restaurants`);
+        setRestaurants(res.data);
+      } else if (activeTab === "users") {
+        const res = await axios.get(`${API_URL}/users`);
+        setUsers(res.data);
+      } else if (activeTab === "insights") {
+        const res = await axios.get(`${API_URL}/insights`);
+        setInsights(res.data);
+      }
+    } catch (error) {
+      console.error("Error fetching data", error);
+    }
   };
 
-  const handleDeleteRestaurant = (id) => {
-    setRestaurants(restaurants.filter((r) => r.id !== id));
+  const handleAddRestaurant = async () => {
+    // Demo values, ideally this should come from a form modal
+    const newRestaurant = {
+      name: "New Restaurant " + Math.floor(Math.random() * 100),
+      city: "Pune",
+      email: "test_hotel_" + Math.floor(Math.random() * 100) + "@mail.com",
+      phone: "9876543210",
+      cuisine: "Indian",
+      password: "" // will be auto-generated
+    };
+    try {
+      const res = await axios.post(`${API_URL}/restaurants`, newRestaurant);
+      // The backend returns the Restaurant object, so we can display it directly
+      setRestaurants([...restaurants, res.data]);
+      alert("Restaurant and User added! Credentials sent to email.");
+    } catch (error) {
+      console.error("Error adding restaurant", error);
+      alert("Failed to add restaurant: " + (error.response?.data || error.message));
+    }
   };
 
-  const handleUpdateRestaurant = (id) => {
-    alert("Update Restaurant ID: " + id);
+  const handleDeleteRestaurant = async (id) => {
+    try {
+      await axios.delete(`${API_URL}/restaurants/${id}`);
+      setRestaurants(restaurants.filter((r) => r.id !== id));
+    } catch (error) {
+      console.error("Error deleting restaurant", error);
+    }
+  };
+
+  const handleUpdateRestaurant = async (id) => {
+    // Simple toggle status for demo
+    const restaurant = restaurants.find(r => r.id === id);
+    if (!restaurant) return;
+
+    const updated = { ...restaurant, status: restaurant.status === "Open" ? "Closed" : "Open" };
+    try {
+      await axios.put(`${API_URL}/restaurants/${id}`, updated);
+      setRestaurants(restaurants.map(r => r.id === id ? updated : r));
+    } catch (error) {
+      console.error("Error updating restaurant", error);
+    }
   };
 
   return (
@@ -92,7 +133,7 @@ function AdminDashboard() {
                   </div>
 
                   <div className="card-actions">
-                    <button className="update" onClick={() => handleUpdateRestaurant(r.id)}>Update</button>
+                    <button className="update" onClick={() => handleUpdateRestaurant(r.id)}>Toggle Status</button>
                     <button className="delete" onClick={() => handleDeleteRestaurant(r.id)}>Delete</button>
                   </div>
                 </div>
@@ -114,10 +155,10 @@ function AdminDashboard() {
 
         {activeTab === "insights" && (
           <div className="grid">
-            <div className="card insight">📦 120 Orders</div>
-            <div className="card insight">🍽 45 Restaurants</div>
-            <div className="card insight">👥 560 Users</div>
-            <div className="card insight">💰 ₹2.4L Revenue</div>
+            <div className="card insight">📦 {insights.orders || 0} Orders</div>
+            <div className="card insight">🍽 {insights.restaurants || 0} Restaurants</div>
+            <div className="card insight">👥 {insights.users || 0} Users</div>
+            <div className="card insight">💰 ₹{insights.revenue || 0} Revenue</div>
           </div>
         )}
       </section>
