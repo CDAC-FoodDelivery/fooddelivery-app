@@ -52,7 +52,7 @@ function SignIn() {
           <a href="#" style={styles.link}>
             Forgot password?
           </a>
-          <Link to="/riderDashboard" style={styles.adminLink}>
+          <Link to="/adminDashboard" style={styles.adminLink}>
             Sign in as Admin
           </Link>
         </div>

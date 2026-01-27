@@ -1,5 +1,6 @@
 import React from "react";
 import { Navbar, Container, Nav, Dropdown } from "react-bootstrap";
+import { toast } from 'react-toastify';
 
 const TopNavbar = ({ userName }) => {
   return (
@@ -31,7 +32,7 @@ const TopNavbar = ({ userName }) => {
             href="/"
             className="ms-3"
             style={{ color: "#ff4d4d", fontWeight: "500", cursor: "pointer" }}
-            onClick={() => alert("Logged out!")}
+            onClick={() => toast.success("Logged Out Successful")}
           >
             Logout
           </Nav.Link>
