@@ -32,8 +32,10 @@ function SignIn() {
           navigate("/hotelDashboard");
         } else if (data.role === "ADMIN") {
           navigate("/adminDashboard");
+        } else if (data.role === "RIDER") {
+          navigate("/riderDashboard");
         } else {
-          navigate("/home");
+          navigate("/home"); // Customer to Home
         }
       }
     } catch (error) {

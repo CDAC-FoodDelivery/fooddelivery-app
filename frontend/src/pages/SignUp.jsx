@@ -9,6 +9,7 @@ function SignUp() {
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
+  const [role, setRole] = useState('CUSTOMER');
 
   const navigate = useNavigate();
 
@@ -21,7 +22,8 @@ function SignUp() {
         password,
         phone,
         address,
-        role: "USER"
+        address,
+        role: role // Send selected role
       });
       toast.success("Registration Successful. Please Login.");
       navigate("/");
@@ -69,6 +71,15 @@ function SignUp() {
           onChange={e => setAddress(e.target.value)}
           style={{ ...styles.input, height: '80px', resize: 'vertical' }}
         />
+        <label style={styles.label}>Register As</label>
+        <select
+          value={role}
+          onChange={e => setRole(e.target.value)}
+          style={styles.input}
+        >
+          <option value="CUSTOMER">Customer</option>
+          <option value="RIDER">Rider</option>
+        </select>
         <button type="submit" style={styles.button}>SIGN UP</button>
         <div style={styles.newUser}>
           Already have an account? <Link to="/" style={styles.registerLink}>Sign in</Link>

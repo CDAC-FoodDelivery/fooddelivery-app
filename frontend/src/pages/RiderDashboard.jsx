@@ -1,19 +1,39 @@
 import React, { useState } from "react";
+import axios from "axios";
 import "./RiderDashboard.css";
 
 function RiderDashboard() {
   const [activeTab, setActiveTab] = useState("deliveries");
 
-  const [deliveries, setDeliveries] = useState([
-    { id: 201, customer: "Suresh P.", address: "123 MG Road, Pune", status: "Assigned" },
-    { id: 202, customer: "Meera K.", address: "45 FC Road, Pune", status: "Picked Up" },
-    { id: 203, customer: "Amit B.", address: "78 Hinjewadi, Pune", status: "Delivered" },
-  ]);
+  const [deliveries, setDeliveries] = useState([]);
 
-  const handleStatusUpdate = (id, newStatus) => {
-    setDeliveries(deliveries.map(d => 
-      d.id === id ? { ...d, status: newStatus } : d
-    ));
+  React.useEffect(() => {
+    fetchDeliveries();
+  }, []);
+
+  const fetchDeliveries = async () => {
+    try {
+      const res = await axios.get("http://localhost:8084/rider/deliveries");
+      // Map backend fields to frontend if needed, but they look similar
+      // Backend: id, customerName, address, status
+      // Frontend: id, customer, address, status
+      setDeliveries(res.data.map(d => ({
+        ...d,
+        customer: d.customerName
+      })));
+    } catch (error) {
+      console.error("Error fetching deliveries", error);
+      // Fallback or empty
+    }
+  };
+
+  const handleStatusUpdate = async (id, newStatus) => {
+    try {
+      await axios.put(`http://localhost:8084/rider/update/${id}/${newStatus}`);
+      fetchDeliveries(); // Refresh
+    } catch (error) {
+      console.error("Error updating status", error);
+    }
   };
 
   return (
@@ -45,13 +65,13 @@ function RiderDashboard() {
 
                 <div className="card-actions">
                   {d.status === "Assigned" && (
-                     <button className="action-btn" onClick={() => handleStatusUpdate(d.id, "Picked Up")}>Mark Picked Up</button>
+                    <button className="action-btn" onClick={() => handleStatusUpdate(d.id, "Picked Up")}>Mark Picked Up</button>
                   )}
                   {d.status === "Picked Up" && (
-                     <button className="action-btn" onClick={() => handleStatusUpdate(d.id, "Delivered")}>Mark Delivered</button>
+                    <button className="action-btn" onClick={() => handleStatusUpdate(d.id, "Delivered")}>Mark Delivered</button>
                   )}
-                   {d.status === "Delivered" && (
-                     <button className="action-btn" disabled style={{ opacity: 0.6, cursor: 'not-allowed' }}>Completed</button>
+                  {d.status === "Delivered" && (
+                    <button className="action-btn" disabled style={{ opacity: 0.6, cursor: 'not-allowed' }}>Completed</button>
                   )}
                 </div>
               </div>

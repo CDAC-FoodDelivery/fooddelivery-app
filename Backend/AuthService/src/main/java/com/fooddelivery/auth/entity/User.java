@@ -31,7 +31,8 @@ public class User {
 
     private String location;
 
-    private String role; // "USER", "ADMIN"
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
     @Column(name = "restaurant_id")
     private Long restaurantId;
