@@ -428,8 +428,10 @@ const btnPrimary = {
 const btnSecondary = {
   padding: "10px 22px",
   borderRadius: "999px",
-  border: "1px solid #dedee8",
+  border: "1px solid #ff8a24",
   background: "#fff",
+  color: "#ff8a24",
+  fontWeight: 600,
   cursor: "pointer",
 };
 
