@@ -10,14 +10,14 @@ const HotelsRow = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8081/api/hotels")
+      .get("http://localhost:5102/api/Admin/restaurants")
       .then((response) => {
         const hotelData = response.data.map((hotel) => ({
           id: hotel.id,
           name: hotel.name,
           rating: hotel.rating,
           cuisine: hotel.cuisine,
-          location: hotel.location,
+          location: hotel.city, // Backend uses 'city'
           image: hotel.imageUrl,
         }));
         setHotels(hotelData);

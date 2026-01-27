@@ -1,3 +1,4 @@
+com\fooddelivery\auth\entity\Role.class
 com\fooddelivery\auth\service\AuthService.class
 com\fooddelivery\auth\util\JwtUtils.class
 com\fooddelivery\auth\entity\User.class

@@ -18,14 +18,24 @@ const ProductsPage = () => {
   const fetchMenu = async () => {
     setLoading(true);
     try {
-      let url = `http://localhost:8082/api/menu?hotelId=${hotelId}`;
+      // Updated to match HotelService Controller
+      let url = `http://localhost:8081/api/hotel/${hotelId}/menu`;
 
-      if (foodType !== "ALL") {
-        url = `http://localhost:8082/api/menu/filter?hotelId=${hotelId}&foodType=${foodType}`;
-      }
+      // Note: Backend filter endpoint isn't implemented yet in HotelController, 
+      // so for now we might fetch all and filter in frontend if needed, 
+      // or we can add filter support to backend.
+      // For now, let's just correct the base fetch:
 
       const response = await axios.get(url);
-      setProducts(response.data);
+
+      // Frontend filtering as temporary fallback
+      let data = response.data;
+      if (foodType === "VEG") {
+        data = data.filter(item => item.veg === true);
+      } else if (foodType === "NON_VEG") {
+        data = data.filter(item => item.veg === false);
+      }
+      setProducts(data);
     } catch (error) {
       console.error("Error fetching menu:", error);
     } finally {

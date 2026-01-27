@@ -101,26 +101,52 @@ function HotelDashboard() {
                     <button className="add-btn" onClick={() => setShowModal(true)}>＋ Add Menu Item</button>
                 </div>
 
-                <div className="grid">
+                <div className="table-responsive">
                     {menus.length === 0 ? (
                         <p className="p-3">No menu items found. Add one to get started!</p>
                     ) : (
-                        menus.map(m => (
-                            <div className="card menu-card" key={m.id}>
-                                <img src={m.imageUrl || "https://via.placeholder.com/300?text=No+Image"} alt={m.name} className="menu-image" />
-                                <h3>{m.name}</h3>
-                                <p className="text-muted small">{m.description?.substring(0, 60)}...</p>
-                                <div className="d-flex justify-content-between align-items-center mt-2">
-                                    <span className="fw-bold">₹{m.price}</span>
-                                    <span className={`badge ${m.isVeg ? "veg" : "non-veg"}`}>
-                                        {m.isVeg ? "Veg" : "Non-Veg"}
-                                    </span>
-                                </div>
-                                <div className="card-actions">
-                                    <button className="delete" onClick={() => handleDelete(m.id)}>Delete</button>
-                                </div>
-                            </div>
-                        ))
+                        <table className="table table-hover align-middle">
+                            <thead className="table-light">
+                                <tr>
+                                    <th>Image</th>
+                                    <th>Item Name</th>
+                                    <th>Description</th>
+                                    <th>Price</th>
+                                    <th>Category</th>
+                                    <th>Type</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {menus.map(m => (
+                                    <tr key={m.id}>
+                                        <td>
+                                            <img
+                                                src={m.imageUrl || "https://via.placeholder.com/50"}
+                                                alt={m.name}
+                                                style={{ width: "50px", height: "50px", objectFit: "cover", borderRadius: "8px" }}
+                                            />
+                                        </td>
+                                        <td className="fw-bold">{m.name}</td>
+                                        <td className="text-muted small" style={{ maxWidth: "200px" }}>
+                                            {m.description?.substring(0, 50)}...
+                                        </td>
+                                        <td className="fw-bold text-success">₹{m.price}</td>
+                                        <td><span className="badge bg-secondary">{m.category}</span></td>
+                                        <td>
+                                            <span className={`badge ${m.isVeg ? "bg-success" : "bg-danger"}`}>
+                                                {m.isVeg ? "Veg" : "Non-Veg"}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(m.id)}>
+                                                <i className="bi bi-trash"></i> Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     )}
                 </div>
             </section>

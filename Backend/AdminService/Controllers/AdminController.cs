@@ -29,7 +29,40 @@ namespace AdminService.Controllers
         [HttpGet("restaurants")]
         public async Task<ActionResult<IEnumerable<Restaurant>>> GetRestaurants()
         {
-            return await _context.Restaurants.ToListAsync();
+            var restaurants = await _context.Restaurants.ToListAsync();
+
+            if (!restaurants.Any())
+            {
+                var dummy = new Restaurant
+                {
+                    Name = "Tasty Bites And More",
+                    City = "Pune",
+                    Status = "Open",
+                    Cuisine = "North Indian",
+                    Rating = 45,
+                    Price = 300,
+                    ImageUrl = "https://images.pexels.com/photos/262978/pexels-photo-262978.jpeg"
+                };
+                _context.Restaurants.Add(dummy);
+                await _context.SaveChangesAsync();
+                restaurants.Add(dummy);
+                
+                var dummy2 = new Restaurant
+                {
+                    Name = "Burger King",
+                    City = "Mumbai",
+                    Status = "Open",
+                    Cuisine = "Fast Food",
+                    Rating = 42,
+                    Price = 150,
+                    ImageUrl = "https://images.pexels.com/photos/1639562/pexels-photo-1639562.jpeg"
+                };
+                 _context.Restaurants.Add(dummy2);
+                await _context.SaveChangesAsync();
+                restaurants.Add(dummy2);
+            }
+
+            return restaurants;
         }
 
         [HttpGet("restaurants/{id}")]
