@@ -1,10 +1,16 @@
 import React from "react";
 import { FaSearch } from "react-icons/fa";
+import { useAuth } from "../context/AuthContext";
 
 const SIDEBAR_LEFT = 70;
 const NAVBAR_HEIGHT = 78;
 
 const Navbar = () => {
+  const { user } = useAuth();
+
+  // Default to "Guest" or empty if user is null/loading
+  const displayName = user?.name || "Guest";
+
   return (
     <nav
       style={{
@@ -25,7 +31,7 @@ const Navbar = () => {
       {/* Left content */}
       <div>
         <div style={{ fontSize: 22, fontWeight: 600 }}>
-          Welcome, Gorry
+          Welcome, {displayName}
         </div>
         <div style={{ fontSize: 14, color: "#989898" }}>
           Discover whatever you need easily
