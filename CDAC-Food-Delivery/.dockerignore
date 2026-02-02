@@ -1,0 +1,64 @@
+# Dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+# Build artifacts
+target/
+dist/
+build/
+out/
+bin/
+obj/
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+.vite/
+
+# Environment files (should be configured separately)
+.env
+.env.local
+.env.production
+
+# Development documentation
+*_FIX.md
+*_SUMMARY.md
+*_DIAGNOSTIC.md
+CLEANUP_SUMMARY.md
+cleanup-for-deployment.ps1
+
+# Test files
+coverage/
+.nyc_output/
+
+# Git
+.git/
+.gitignore
+
+# Database
+*.db
+*.sqlite
+*.sqlite3

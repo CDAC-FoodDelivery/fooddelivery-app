@@ -1,0 +1,99 @@
+.page-wrapper {
+  margin-left: 125px;
+  margin-right: 350px;
+  margin-top: 90px;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.filter-bar button {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  background: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.active-filter {
+  background: #fc8019;
+  color: white;
+  border-color: #fc8019;
+}
+
+.products-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 28px;
+}
+
+.products-page {
+  padding: 20px 40px;
+  margin-top: 0;
+}
+
+.food-filter-bar {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 30px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.food-filter-bar .filter-btn {
+  padding: 10px 24px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  background: white;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #3d4152;
+}
+
+.food-filter-bar .filter-btn:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.food-filter-bar .filter-btn.veg {
+  border-color: #2ecc71;
+  color: #27ae60;
+}
+
+.food-filter-bar .filter-btn.nonveg {
+  border-color: #e74c3c;
+  color: #c0392b;
+}
+
+.food-filter-bar .filter-btn.active.all {
+  background-color: #fc8019;
+  color: white;
+  border-color: #fc8019;
+}
+
+.food-filter-bar .filter-btn.active.veg {
+  background-color: #2ecc71;
+  color: white;
+  border-color: #2ecc71;
+}
+
+.food-filter-bar .filter-btn.active.nonveg {
+  background-color: #e74c3c;
+  color: white;
+  border-color: #e74c3c;
+}
+
+.products-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 28px;
+}

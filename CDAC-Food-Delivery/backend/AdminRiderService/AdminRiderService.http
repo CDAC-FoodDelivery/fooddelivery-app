@@ -1,0 +1,6 @@
+@AdminRiderService_HostAddress = http://localhost:5189
+
+GET {{AdminRiderService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

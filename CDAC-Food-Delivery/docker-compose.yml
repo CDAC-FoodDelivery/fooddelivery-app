@@ -1,0 +1,156 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: fooddelivery-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: fooddelivery
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+    networks:
+      - fooddelivery-network
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  discovery-server:
+    build:
+      context: ./backend/discovery-server
+      dockerfile: Dockerfile
+    container_name: discovery-server
+    ports:
+      - "8761:8761"
+    networks:
+      - fooddelivery-network
+
+  api-gateway:
+    build:
+      context: ./backend/api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      ADMIN_SERVICE_URL: http://admin-rider-service:9086
+    depends_on:
+      - discovery-server
+    networks:
+      - fooddelivery-network
+    restart: on-failure
+
+  auth-service:
+    build:
+      context: ./backend/AuthService
+      dockerfile: Dockerfile
+    container_name: auth-service
+    ports:
+      - "9081:9081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/fooddelivery_auth?useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+    networks:
+      - fooddelivery-network
+    restart: on-failure
+
+  hotel-service:
+    build:
+      context: ./backend/fooddelivery_backend
+      dockerfile: Dockerfile
+    container_name: hotel-service
+    ports:
+      - "9082:9082"
+    environment:
+      SERVER_PORT: 9082
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/fooddelivery_hotel?useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+    networks:
+      - fooddelivery-network
+    restart: on-failure
+
+  menu-service:
+    build:
+      context: ./backend/Menu-backend
+      dockerfile: Dockerfile
+    container_name: menu-service
+    ports:
+      - "9083:9083"
+    environment:
+      SERVER_PORT: 9083
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/fooddelivery_menu?useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+    networks:
+      - fooddelivery-network
+    restart: on-failure
+
+  admin-rider-service:
+    build:
+      context: ./backend/AdminRiderService
+      dockerfile: Dockerfile
+    container_name: admin-rider-service
+    ports:
+      - "9086:9086"
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=mysql;Database=fooddelivery_admin_rider;User=root;Password=root;"
+      ASPNETCORE_URLS: "http://+:9086"
+      ASPNETCORE_ENVIRONMENT: "Production"
+      Services__MenuService__BaseUrl: "http://menu-service:9083/api/menu"
+      Services__HotelService__HotelsUrl: "http://hotel-service:9082/api/hotels"
+      Services__HotelService__OrdersUrl: "http://hotel-service:9082/api/orders"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+    networks:
+      - fooddelivery-network
+    restart: on-failure
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - fooddelivery-network
+    restart: on-failure
+
+networks:
+  fooddelivery-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
