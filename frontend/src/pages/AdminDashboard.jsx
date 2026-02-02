@@ -56,7 +56,7 @@ function AdminDashboard() {
   };
 
   // Submit New Restaurant
-  const handleSubmitRestaurant = async (e) => {
+  const handleRestaurant = async (e) => {
     e.preventDefault();
     try {
       const res = await axios.post(`${API_URL}/restaurants`, formData);
@@ -187,7 +187,7 @@ function AdminDashboard() {
           <Modal.Title>Add New Restaurant</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form onSubmit={handleSubmitRestaurant}>
+          <Form onSubmit={handleRestaurant}>
             <Form.Group className="mb-3">
               <Form.Label>Restaurant Name</Form.Label>
               <Form.Control
