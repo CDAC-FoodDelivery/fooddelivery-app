@@ -21,10 +21,10 @@ const HotelCarousel = () => {
   return (
     <div
       style={{
-        width: "100%",
-        height: "550px",        // ✅ Standard app hero height
+        width: "101%",
+        height: "551px",        // ✅ Standard app hero height
         overflow: "hidden",
-        marginBottom: "24px",   // ✅ Standard spacing
+        marginBottom: "25px",   // ✅ Standard spacing
         position: "relative",
       }}
     >
