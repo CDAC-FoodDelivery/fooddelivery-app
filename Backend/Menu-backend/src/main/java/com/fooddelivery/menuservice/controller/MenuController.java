@@ -20,15 +20,15 @@ public class MenuController {
 
     // GET /api/menu?hotelId=5
     @GetMapping
-    public List<MenuResponseDTO> getMenu(@RequestParam Long hotelId) {
-        return menuService.getMenuByHotel(hotelId);
+    public List<MenuResponseDTO> getMenu(@RequestParam Long hotelIds) {
+        return menuService.getMenuByHotel(hotelIds);
     }
 
     // GET /api/menu/filter?hotelId=5&foodType=veg
     @GetMapping("/filter")
     public List<MenuResponseDTO> getMenuByType(
-            @RequestParam Long hotelId,
+            @RequestParam Long hotelIds,
             @RequestParam String foodType) {
-        return menuService.getMenuByHotelAndFoodType(hotelId, foodType);
+        return menuService.getMenuByHotelAndFoodType(hotelIds, foodType);
     }
 }
