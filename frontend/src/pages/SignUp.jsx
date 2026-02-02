@@ -13,7 +13,7 @@ function SignUp() {
 
   const navigate = useNavigate();
 
-  const handleSignUp = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     try {
       await axios.post('http://localhost:8083/auth/register', {
@@ -35,7 +35,7 @@ function SignUp() {
 
   return (
     <div style={styles.container}>
-      <form style={styles.form} onSubmit={handleSignUp}>
+      <form style={styles.form} onSubmit={handleRegister}>
         <h2 style={styles.title}>Create your account</h2>
         <label style={styles.label}>Name</label>
         <input
