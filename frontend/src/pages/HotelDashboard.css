@@ -15,10 +15,7 @@
     font-size: 32px;
 }
 
-.hotel-header p {
-    margin-top: 6px;
-    opacity: 0.9;
-}
+
 
 /* Reusing tabs style */
 .tabs {
@@ -161,4 +158,8 @@ input:focus,
 .form-control:focus {
     border-color: #ff6b35 !important;
     box-shadow: 0 0 0 0.25rem rgba(255, 107, 53, 0.25) !important;
+}
+.hotel-header p {
+    margin-top: 6px;
+    opacity: 0.9;
 }
