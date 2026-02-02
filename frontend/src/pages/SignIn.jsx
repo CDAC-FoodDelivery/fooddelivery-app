@@ -1,3 +1,5 @@
+
+// this is sign in page
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -11,7 +13,7 @@ function SignIn() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleLogin = async (e) => {
+  const handleLoginIn= async (e) => {
     e.preventDefault();
     try {
       const res = await axios.post("http://localhost:8083/auth/login", {
@@ -48,7 +50,7 @@ function SignIn() {
 
   return (
     <div style={styles.container}>
-      <form style={styles.form} onSubmit={handleLogin}>
+      <form style={styles.form} onSubmit={handleLoginIn}>
         <h2 style={styles.title}>Sign in to your account</h2>
 
         <label style={styles.label}>Email or username</label>
@@ -165,7 +167,7 @@ const styles = {
     textDecoration: "none",
   },
   footer: {
-    marginTop: "40px",
+    marginTop: "41px",
     fontSize: "13px",
     color: "#444",
   },
