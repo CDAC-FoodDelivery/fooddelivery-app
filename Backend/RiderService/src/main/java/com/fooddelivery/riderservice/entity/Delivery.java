@@ -16,7 +16,7 @@ public class Delivery {
     private Long id;
 
     private String customerName;
-    private String address;
+    private String customerAddress;
     private String status; // Assigned, Picked Up, Delivered
     private Long riderId; // To link to a rider
 }
