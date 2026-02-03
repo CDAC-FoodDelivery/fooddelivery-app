@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import HotelCard from "./Hotelcard";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { API_ENDPOINTS } from '../config/api';
 
 const HotelsRow = () => {
   const [hotels, setHotels] = useState([]);
@@ -10,7 +11,7 @@ const HotelsRow = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8080/api/hotels")
+      .get(API_ENDPOINTS.HOTELS.BASE)
       .then((response) => {
         const hotelData = response.data.map((hotel) => ({
           id: hotel.id,

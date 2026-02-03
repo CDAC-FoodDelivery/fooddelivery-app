@@ -3,6 +3,7 @@ import "./AdminDashboard.css";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { API_ENDPOINTS } from '../config/api';
 
 // Import sub-components
 import AdminHeader from "../components/admin/AdminHeader";
@@ -59,7 +60,7 @@ function AdminDashboardPage() {
         isAvailable: true
     });
 
-    const API_BASE = "http://localhost:8080/api/admin";
+    const API_BASE = API_ENDPOINTS.ADMIN.BASE;
     const token = localStorage.getItem("token");
 
     const axiosConfig = {

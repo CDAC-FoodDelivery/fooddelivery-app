@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
 import axios from "axios";
+import { API_ENDPOINTS } from '../config/api';
 
 const AuthContext = createContext();
 
@@ -11,7 +12,7 @@ export const AuthProvider = ({ children }) => {
 
     const fetchUser = async () => {
         const token = localStorage.getItem("token");
-        const serviceUrl = localStorage.getItem("authServiceUrl") || "http://localhost:8080/api/auth/profile";
+        const serviceUrl = localStorage.getItem("authServiceUrl") || API_ENDPOINTS.AUTH.PROFILE;
 
         if (!token) {
             setUser(null);
@@ -39,7 +40,7 @@ export const AuthProvider = ({ children }) => {
         fetchUser();
     }, []);
 
-    const login = async (tokenData, serviceUrl = "http://localhost:8080/api/auth/profile") => {
+    const login = async (tokenData, serviceUrl = API_ENDPOINTS.AUTH.PROFILE) => {
         const token = typeof tokenData === 'string' ? tokenData : tokenData.token;
         if (token) {
             localStorage.setItem("token", token);

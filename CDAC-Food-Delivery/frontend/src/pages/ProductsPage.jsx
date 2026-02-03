@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import ProductCard from "../components/ProductCard";
 import { useCart } from "../context/CartContext";
+import { API_ENDPOINTS } from '../config/api';
 import "./ProductsPage.css";
 
 const ProductsPage = () => {
@@ -20,10 +21,10 @@ const ProductsPage = () => {
   const fetchMenu = async () => {
     setLoading(true);
     try {
-      let url = `http://localhost:8080/api/menu?hotelId=${hotelId}`;
+      let url = API_ENDPOINTS.MENU.BY_HOTEL(hotelId);
 
       if (foodType !== "ALL") {
-        url = `http://localhost:8080/api/menu/filter?hotelId=${hotelId}&foodType=${foodType}`;
+        url = API_ENDPOINTS.MENU.FILTER(hotelId, foodType);
       }
 
       const response = await axios.get(url);

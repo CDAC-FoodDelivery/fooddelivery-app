@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast } from 'react-toastify';
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { API_ENDPOINTS } from '../config/api';
 import {
   FaHome,
   FaFire,
@@ -37,7 +38,7 @@ const EditProfileModal = ({ onClose }) => {
       if (!token) return;
 
       try {
-        const response = await axios.get("http://localhost:8080/api/auth/profile", {
+        const response = await axios.get(API_ENDPOINTS.AUTH.PROFILE, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const user = response.data;
@@ -64,7 +65,7 @@ const EditProfileModal = ({ onClose }) => {
 
     try {
       const response = await axios.put(
-        "http://localhost:8080/api/auth/profile",
+        API_ENDPOINTS.AUTH.PROFILE,
         profile,
         {
           headers: { Authorization: `Bearer ${token}` },

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import ProductCard from "../components/ProductCard";
 import { useCart } from "../context/CartContext";
+import { API_ENDPOINTS } from '../config/api';
 import "./ProductsPage.css";
 
 const TrendingPage = () => {
@@ -13,7 +14,7 @@ const TrendingPage = () => {
         const fetchTrendingData = async () => {
             setLoading(true);
             try {
-                const hotelsRes = await axios.get("http://localhost:8080/api/hotels");
+                const hotelsRes = await axios.get(API_ENDPOINTS.HOTELS.BASE);
                 const hotels = hotelsRes.data;
 
                 const topHotels = [...hotels]
@@ -21,7 +22,7 @@ const TrendingPage = () => {
                     .slice(0, 3);
 
                 const menuPromises = topHotels.map(hotel =>
-                    axios.get(`http://localhost:8080/api/menu?hotelId=${hotel.id}`)
+                    axios.get(API_ENDPOINTS.MENU.BY_HOTEL(hotel.id))
                         .then(res => res.data.map(item => ({
                             ...item,
                             hotelName: hotel.name,

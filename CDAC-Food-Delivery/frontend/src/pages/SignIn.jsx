@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from 'react-toastify';
+import { API_ENDPOINTS } from '../config/api';
 
 import { useAuth } from "../context/AuthContext";
 
@@ -15,15 +16,15 @@ function SignIn() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("http://localhost:8080/api/auth/login", {
+      const response = await axios.post(API_ENDPOINTS.AUTH.LOGIN, {
         username: email,
         password: password,
       });
       if (response.data) {
         const token = response.data;
-        await login(token, "http://localhost:8080/api/auth/profile");
+        await login(token, API_ENDPOINTS.AUTH.PROFILE);
 
-        const profileResponse = await axios.get("http://localhost:8080/api/auth/profile", {
+        const profileResponse = await axios.get(API_ENDPOINTS.AUTH.PROFILE, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const user = profileResponse.data;

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { API_ENDPOINTS } from '../config/api';
 
 function SignUp() {
   const [name, setName] = useState('');
@@ -15,7 +16,7 @@ function SignUp() {
   const handleSignUp = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:8080/api/auth/register', {
+      await axios.post(API_ENDPOINTS.AUTH.REGISTER, {
         name,
         email,
         password,

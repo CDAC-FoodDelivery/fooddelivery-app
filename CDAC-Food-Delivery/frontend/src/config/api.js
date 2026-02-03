@@ -1,4 +1,23 @@
-export const API_BASE_URL = 'http://localhost:8080';
+// API Configuration
+// In production, API calls go through nginx proxy at the same origin
+// In development, API calls go to localhost:8080
+
+// Determine the API base URL based on environment
+const getApiBaseUrl = () => {
+    // In production (Vite builds), use relative URLs (same origin via nginx proxy)
+    if (import.meta.env.PROD) {
+        return '';  // Empty string means same origin, e.g., /api/auth/login
+    }
+
+    // In development, use localhost
+    if (import.meta.env.VITE_API_URL) {
+        return import.meta.env.VITE_API_URL;
+    }
+
+    return 'http://localhost:8080';
+};
+
+export const API_BASE_URL = getApiBaseUrl();
 
 export const API_ENDPOINTS = {
     AUTH: {
@@ -25,7 +44,7 @@ export const API_ENDPOINTS = {
     },
 
     PAYMENTS: {
-        CREATE: `${API_BASE_URL}/api/payments/create`,
+        CREATE: `${API_BASE_URL}/api/payments/create-order`,
         VERIFY: `${API_BASE_URL}/api/payments/verify`,
     },
 
@@ -36,6 +55,7 @@ export const API_ENDPOINTS = {
         USERS: `${API_BASE_URL}/api/admin/users`,
         LOGIN: `${API_BASE_URL}/api/admin/login`,
         PROFILE: `${API_BASE_URL}/api/admin/profile`,
+        REGISTER_RIDER: `${API_BASE_URL}/api/admin/register-rider`,
     },
 
     RIDERS: {

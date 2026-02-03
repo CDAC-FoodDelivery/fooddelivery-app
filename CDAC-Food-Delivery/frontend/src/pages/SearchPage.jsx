@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import axios from "axios";
 import HotelCard from "../components/Hotelcard";
+import { API_ENDPOINTS } from '../config/api';
 import "./ProductsPage.css";
 
 const SearchPage = () => {
@@ -15,7 +16,7 @@ const SearchPage = () => {
         const fetchHotels = async () => {
             setLoading(true);
             try {
-                const response = await axios.get("http://localhost:8080/api/hotels");
+                const response = await axios.get(API_ENDPOINTS.HOTELS.BASE);
                 setHotels(response.data);
             } catch (error) {
                 console.error("Error fetching hotels for search:", error);

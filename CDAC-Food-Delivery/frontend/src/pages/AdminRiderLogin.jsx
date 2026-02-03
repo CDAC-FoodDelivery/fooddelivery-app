@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
+import { API_ENDPOINTS } from '../config/api';
 
 function AdminRiderLogin() {
     const [email, setEmail] = useState("");
@@ -15,13 +16,13 @@ function AdminRiderLogin() {
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post("http://localhost:8080/api/admin/login", {
+            const response = await axios.post(API_ENDPOINTS.ADMIN.LOGIN, {
                 email: email,
                 password: password,
             });
             if (response.data) {
                 const token = response.data;
-                const profileUrl = "http://localhost:8080/api/admin/profile";
+                const profileUrl = API_ENDPOINTS.ADMIN.PROFILE;
                 await login(token, profileUrl);
 
                 const profileResponse = await axios.get(profileUrl, {

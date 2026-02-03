@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { API_ENDPOINTS } from '../config/api';
 
 function Payment() {
   const { cartItems, totalPrice, clearCart } = useCart();
@@ -39,7 +40,7 @@ function Payment() {
 
   const handleRazorpayPayment = async () => {
     try {
-      const { data } = await axios.post("http://localhost:8080/api/payments/create-order", {
+      const { data } = await axios.post(API_ENDPOINTS.PAYMENTS.CREATE, {
         amount: finalTotal,
         currency: "INR"
       });
@@ -53,7 +54,7 @@ function Payment() {
         ...(data.orderId.startsWith("order_mock") ? {} : { order_id: data.orderId }),
         handler: async (response) => {
           try {
-            await axios.post("http://localhost:8080/api/payments/verify", {
+            await axios.post(API_ENDPOINTS.PAYMENTS.VERIFY, {
               razorpayOrderId: response.razorpay_order_id,
               razorpayPaymentId: response.razorpay_payment_id,
               razorpaySignature: response.razorpay_signature,
@@ -88,7 +89,7 @@ function Payment() {
           }
 
           try {
-            await axios.post("http://localhost:8080/api/payments/verify", {
+            await axios.post(API_ENDPOINTS.PAYMENTS.VERIFY, {
               razorpayOrderId: data.orderId,
               razorpayPaymentId: "mock_pay_" + Date.now(),
               razorpaySignature: "mock_sig_" + Date.now(),
@@ -135,7 +136,7 @@ function Payment() {
         }))
       };
 
-      const response = await axios.post("http://localhost:8080/api/orders", orderData);
+      const response = await axios.post(API_ENDPOINTS.ORDERS.BASE, orderData);
 
       if (response.status === 200) {
         toast.success(`Order placed successfully! ID: ${response.data.id} 🍛`);
