@@ -1,23 +1,11 @@
 // API Configuration
-// In production, API calls go through nginx proxy at the same origin
-// In development, API calls go to localhost:8080
+// Uses VITE_API_URL from environment files:
+// - .env.production: VITE_API_URL= (empty = same origin via nginx)
+// - .env.development: VITE_API_URL=http://localhost:8080
 
-// Determine the API base URL based on environment
-const getApiBaseUrl = () => {
-    // In production (Vite builds), use relative URLs (same origin via nginx proxy)
-    if (import.meta.env.PROD) {
-        return '';  // Empty string means same origin, e.g., /api/auth/login
-    }
-
-    // In development, use localhost
-    if (import.meta.env.VITE_API_URL) {
-        return import.meta.env.VITE_API_URL;
-    }
-
-    return 'http://localhost:8080';
-};
-
-export const API_BASE_URL = getApiBaseUrl();
+// Get API base URL from Vite environment variable
+// Empty string means same-origin requests (production via nginx proxy)
+export const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export const API_ENDPOINTS = {
     AUTH: {
