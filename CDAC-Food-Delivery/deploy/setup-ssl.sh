@@ -141,8 +141,11 @@ check_dns() {
 check_services() {
     log_step "Checking services..."
     
-    if ! docker compose -f "$COMPOSE_FILE" ps 2>/dev/null | grep -q "nginx.*running"; then
-        log_error "Nginx is not running!"
+    # Use docker inspect to reliably check if nginx is running
+    local nginx_status=$(docker inspect --format='{{.State.Status}}' nginx 2>/dev/null || echo "not found")
+    
+    if [ "$nginx_status" != "running" ]; then
+        log_error "Nginx is not running! (status: $nginx_status)"
         log_info "Please run: ./deploy/deploy.sh first"
         exit 1
     fi
