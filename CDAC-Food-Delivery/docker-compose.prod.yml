@@ -1,0 +1,324 @@
+# ============================================
+# Food Delivery App - Production Docker Compose
+# ============================================
+# Usage:
+#   docker compose -f docker-compose.prod.yml up -d
+#   docker compose -f docker-compose.prod.yml down
+# ============================================
+
+services:
+  # ============================================
+  # MySQL Database
+  # ============================================
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_USER: ${MYSQL_USER:-fooddelivery_app}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-root}
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+    networks:
+      - fooddelivery-network
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: ${MYSQL_MEMORY_LIMIT:-512m}
+    restart: unless-stopped
+
+  # ============================================
+  # Eureka Discovery Server
+  # ============================================
+  discovery-server:
+    build:
+      context: ./backend/discovery-server
+      dockerfile: Dockerfile
+    container_name: discovery-server
+    ports:
+      - "8761:8761"
+    networks:
+      - fooddelivery-network
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "--spider", "http://localhost:8761/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: ${SERVICE_MEMORY_LIMIT:-384m}
+    restart: unless-stopped
+
+  # ============================================
+  # API Gateway
+  # ============================================
+  api-gateway:
+    build:
+      context: ./backend/api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      ADMIN_SERVICE_URL: http://admin-rider-service:9086
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+    networks:
+      - fooddelivery-network
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "--spider", "http://localhost:8080/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    deploy:
+      resources:
+        limits:
+          memory: ${SERVICE_MEMORY_LIMIT:-384m}
+    restart: unless-stopped
+
+  # ============================================
+  # Auth Service
+  # ============================================
+  auth-service:
+    build:
+      context: ./backend/AuthService
+      dockerfile: Dockerfile
+    container_name: auth-service
+    ports:
+      - "9081:9081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/fooddelivery_auth?useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      JWT_SECRET: ${JWT_SECRET:-5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    networks:
+      - fooddelivery-network
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "--spider", "http://localhost:9081/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    deploy:
+      resources:
+        limits:
+          memory: ${SERVICE_MEMORY_LIMIT:-384m}
+    restart: unless-stopped
+
+  # ============================================
+  # Hotel Service
+  # ============================================
+  hotel-service:
+    build:
+      context: ./backend/fooddelivery_backend
+      dockerfile: Dockerfile
+    container_name: hotel-service
+    ports:
+      - "9082:9082"
+    environment:
+      SERVER_PORT: 9082
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/fooddelivery_hotel?useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    networks:
+      - fooddelivery-network
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "--spider", "http://localhost:9082/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    deploy:
+      resources:
+        limits:
+          memory: ${SERVICE_MEMORY_LIMIT:-384m}
+    restart: unless-stopped
+
+  # ============================================
+  # Menu Service
+  # ============================================
+  menu-service:
+    build:
+      context: ./backend/Menu-backend
+      dockerfile: Dockerfile
+    container_name: menu-service
+    ports:
+      - "9083:9083"
+    environment:
+      SERVER_PORT: 9083
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/fooddelivery_menu?useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    networks:
+      - fooddelivery-network
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "--spider", "http://localhost:9083/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    deploy:
+      resources:
+        limits:
+          memory: ${SERVICE_MEMORY_LIMIT:-384m}
+    restart: unless-stopped
+
+  # ============================================
+  # Admin Rider Service (.NET)
+  # ============================================
+  admin-rider-service:
+    build:
+      context: ./backend/AdminRiderService
+      dockerfile: Dockerfile
+    container_name: admin-rider-service
+    ports:
+      - "9086:9086"
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=mysql;Database=fooddelivery_admin_rider;User=root;Password=${MYSQL_ROOT_PASSWORD:-root};"
+      ASPNETCORE_URLS: "http://+:9086"
+      ASPNETCORE_ENVIRONMENT: "Production"
+      Services__MenuService__BaseUrl: "http://menu-service:9083/api/menu"
+      Services__HotelService__HotelsUrl: "http://hotel-service:9082/api/hotels"
+      Services__HotelService__OrdersUrl: "http://hotel-service:9082/api/orders"
+      Jwt__Key: "${ADMIN_JWT_KEY:-ThIsIsAVeryLongAndSecureKeyForAdminRiderService123!}"
+      Jwt__Issuer: "${ADMIN_JWT_ISSUER:-AdminRiderService}"
+      Jwt__Audience: "${ADMIN_JWT_AUDIENCE:-FoodDeliveryApp}"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    networks:
+      - fooddelivery-network
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "--spider", "http://localhost:9086/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: ${SERVICE_MEMORY_LIMIT:-384m}
+    restart: unless-stopped
+
+  # ============================================
+  # Frontend (React App)
+  # ============================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=https://${DOMAIN:-localhost}/api
+    container_name: frontend
+    networks:
+      - fooddelivery-network
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "--spider", "http://localhost:80" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: ${FRONTEND_MEMORY_LIMIT:-128m}
+    restart: unless-stopped
+
+  # ============================================
+  # Nginx Reverse Proxy
+  # ============================================
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - certbot-www:/var/www/certbot:ro
+      - certbot-certs:/etc/letsencrypt:ro
+    depends_on:
+      - frontend
+      - api-gateway
+    networks:
+      - fooddelivery-network
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "--spider", "http://localhost/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # ============================================
+  # Certbot (SSL Certificate Management)
+  # ============================================
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - certbot-www:/var/www/certbot
+      - certbot-certs:/etc/letsencrypt
+    networks:
+      - fooddelivery-network
+    # Runs once and exits - used for certificate renewal
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+# ============================================
+# Networks
+# ============================================
+networks:
+  fooddelivery-network:
+    driver: bridge
+
+# ============================================
+# Volumes
+# ============================================
+volumes:
+  mysql-data:
+    name: fooddelivery-mysql-data
+  certbot-www:
+    name: fooddelivery-certbot-www
+  certbot-certs:
+    name: fooddelivery-certbot-certs
