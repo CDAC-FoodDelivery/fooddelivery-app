@@ -1,6 +1,10 @@
 # ============================================
 # Food Delivery App - Production Docker Compose
 # ============================================
+# Security Hardened Configuration
+# Only Nginx is exposed externally (ports 80/443)
+# All other services are internal to Docker network
+# ============================================
 # Usage:
 #   docker compose -f docker-compose.prod.yml up -d
 #   docker compose -f docker-compose.prod.yml down
@@ -17,8 +21,9 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
       MYSQL_USER: ${MYSQL_USER:-fooddelivery_app}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-root}
-    ports:
-      - "3307:3306"
+    # NO external ports - only accessible within Docker network
+    expose:
+      - "3306"
     volumes:
       - mysql-data:/var/lib/mysql
       - ./init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
@@ -44,8 +49,9 @@ services:
       context: ./backend/discovery-server
       dockerfile: Dockerfile
     container_name: discovery-server
-    ports:
-      - "8761:8761"
+    # NO external ports - only accessible within Docker network
+    expose:
+      - "8761"
     networks:
       - fooddelivery-network
     healthcheck:
@@ -68,8 +74,9 @@ services:
       context: ./backend/api-gateway
       dockerfile: Dockerfile
     container_name: api-gateway
-    ports:
-      - "8080:8080"
+    # NO external ports - only accessible via Nginx
+    expose:
+      - "8080"
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
       ADMIN_SERVICE_URL: http://admin-rider-service:9086
@@ -99,8 +106,9 @@ services:
       context: ./backend/AuthService
       dockerfile: Dockerfile
     container_name: auth-service
-    ports:
-      - "9081:9081"
+    # NO external ports - only accessible within Docker network
+    expose:
+      - "9081"
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/fooddelivery_auth?useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
       SPRING_DATASOURCE_USERNAME: root
@@ -137,8 +145,9 @@ services:
       context: ./backend/fooddelivery_backend
       dockerfile: Dockerfile
     container_name: hotel-service
-    ports:
-      - "9082:9082"
+    # NO external ports - only accessible within Docker network
+    expose:
+      - "9082"
     environment:
       SERVER_PORT: 9082
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/fooddelivery_hotel?useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
@@ -174,8 +183,9 @@ services:
       context: ./backend/Menu-backend
       dockerfile: Dockerfile
     container_name: menu-service
-    ports:
-      - "9083:9083"
+    # NO external ports - only accessible within Docker network
+    expose:
+      - "9083"
     environment:
       SERVER_PORT: 9083
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/fooddelivery_menu?useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
@@ -211,8 +221,9 @@ services:
       context: ./backend/AdminRiderService
       dockerfile: Dockerfile
     container_name: admin-rider-service
-    ports:
-      - "9086:9086"
+    # NO external ports - only accessible within Docker network
+    expose:
+      - "9086"
     environment:
       ConnectionStrings__DefaultConnection: "Server=mysql;Database=fooddelivery_admin_rider;User=root;Password=${MYSQL_ROOT_PASSWORD:-root};"
       ASPNETCORE_URLS: "http://+:9086"
@@ -252,6 +263,9 @@ services:
       args:
         - VITE_API_URL=https://${DOMAIN:-localhost}/api
     container_name: frontend
+    # NO external ports - served via Nginx
+    expose:
+      - "80"
     networks:
       - fooddelivery-network
     healthcheck:
@@ -269,9 +283,12 @@ services:
   # ============================================
   # Nginx Reverse Proxy
   # ============================================
+  # THIS IS THE ONLY SERVICE EXPOSED EXTERNALLY
+  # ============================================
   nginx:
     image: nginx:alpine
     container_name: nginx
+    # ONLY THESE PORTS ARE ACCESSIBLE FROM INTERNET
     ports:
       - "80:80"
       - "443:443"
@@ -311,6 +328,11 @@ services:
 networks:
   fooddelivery-network:
     driver: bridge
+    # Additional network security
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
 
 # ============================================
 # Volumes

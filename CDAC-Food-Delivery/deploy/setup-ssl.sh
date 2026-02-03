@@ -51,7 +51,7 @@ pre_checks() {
     log_info "Running pre-checks..."
     
     # Check if services are running
-    if ! docker compose -f "$PROJECT_ROOT/docker-compose.prod.yml" ps | grep -q "nginx-proxy"; then
+    if ! docker compose -f "$PROJECT_ROOT/docker-compose.prod.yml" ps | grep -q "nginx"; then
         log_error "Services are not running. Please run deploy.sh first."
         exit 1
     fi
