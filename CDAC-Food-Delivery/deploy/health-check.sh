@@ -119,8 +119,9 @@ check_database() {
         source "$PROJECT_ROOT/.env"
     fi
     
-    local user="${MYSQL_USER:-root}"
-    local pass="${MYSQL_PASSWORD:-root}"
+    # Use root credentials for admin operations
+    local user="root"
+    local pass="${MYSQL_ROOT_PASSWORD:-root}"
     
     # Check MySQL is responding
     if docker exec mysql mysqladmin ping -u"$user" -p"$pass" --silent 2>/dev/null; then
