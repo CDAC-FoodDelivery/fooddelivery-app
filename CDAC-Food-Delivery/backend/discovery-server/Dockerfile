@@ -6,6 +6,10 @@ RUN mvn clean package -DskipTests
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
+
+# Install wget for health checks
+RUN apk add --no-cache wget
+
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8761
 ENTRYPOINT ["java", "-jar", "app.jar"]

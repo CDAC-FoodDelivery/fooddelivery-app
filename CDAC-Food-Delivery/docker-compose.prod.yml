@@ -231,7 +231,7 @@ services:
     networks:
       - fooddelivery-network
     healthcheck:
-      test: [ "CMD", "wget", "-q", "--spider", "http://localhost:9086/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:9086/health" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -255,7 +255,7 @@ services:
     networks:
       - fooddelivery-network
     healthcheck:
-      test: [ "CMD", "wget", "-q", "--spider", "http://localhost:80" ]
+      test: [ "CMD", "wget", "-q", "--spider", "http://localhost:80/health" ]
       interval: 30s
       timeout: 10s
       retries: 3

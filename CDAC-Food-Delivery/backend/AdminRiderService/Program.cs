@@ -57,9 +57,14 @@ if (app.Environment.IsDevelopment())
 }
 
 
+app.UseCors("AllowAll");
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// Health check endpoint for Docker
+app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
 
 using (var scope = app.Services.CreateScope())
 {

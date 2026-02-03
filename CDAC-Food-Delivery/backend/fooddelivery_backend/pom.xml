@@ -24,6 +24,12 @@
 
     <dependencies>
 
+        <!-- Actuator for health checks -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
         <!-- REST APIs -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

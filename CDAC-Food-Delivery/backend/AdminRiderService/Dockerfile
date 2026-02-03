@@ -7,6 +7,10 @@ RUN dotnet publish -c Release -o out
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
+
+# Install curl for health checks
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 COPY --from=build /app/out .
 EXPOSE 9086
 ENTRYPOINT ["dotnet", "AdminRiderService.dll"]
