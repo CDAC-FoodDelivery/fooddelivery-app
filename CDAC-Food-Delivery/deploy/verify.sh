@@ -12,7 +12,8 @@
 # - All endpoints respond correctly
 # ============================================
 
-set -e  # Exit on error (but we'll handle errors manually for checks)
+# Don't exit on error - we need to run all tests
+set +e
 
 # Colors for output
 RED='\033[0;31m'
@@ -31,6 +32,10 @@ COMPOSE_FILE="$PROJECT_ROOT/docker-compose.prod.yml"
 TESTS_PASSED=0
 TESTS_FAILED=0
 TESTS_WARNED=0
+
+# Server IP (will be set during init)
+SERVER_IP=""
+DOMAIN_RESOLVES_TO_SERVER=false
 
 # ============================================
 # Logging Functions
@@ -62,14 +67,47 @@ load_env() {
 }
 
 # ============================================
-# Get Server IP
+# Initialize - Get Server IP and Check DNS
 # ============================================
-get_server_ip() {
-    SERVER_IP=$(curl -s --connect-timeout 5 ifconfig.me 2>/dev/null || \
-                curl -s --connect-timeout 5 icanhazip.com 2>/dev/null || \
-                hostname -I 2>/dev/null | awk '{print $1}' || \
-                echo "127.0.0.1")
-    echo "$SERVER_IP"
+initialize() {
+    log_info "Initializing verification..."
+    echo ""
+    
+    # Get server's public IP
+    SERVER_IP=$(curl -s --connect-timeout 5 ifconfig.me 2>/dev/null)
+    if [ -z "$SERVER_IP" ]; then
+        SERVER_IP=$(curl -s --connect-timeout 5 icanhazip.com 2>/dev/null)
+    fi
+    if [ -z "$SERVER_IP" ]; then
+        SERVER_IP=$(curl -s --connect-timeout 5 ipinfo.io/ip 2>/dev/null)
+    fi
+    
+    if [ -n "$SERVER_IP" ]; then
+        log_info "Server public IP: $SERVER_IP"
+    else
+        log_warning "Could not determine server's public IP"
+        SERVER_IP="127.0.0.1"
+    fi
+    
+    # Check if domain resolves to this server
+    if [ "$DOMAIN" != "localhost" ]; then
+        DOMAIN_IP=$(dig +short "$DOMAIN" 2>/dev/null | tail -1)
+        
+        if [ -n "$DOMAIN_IP" ]; then
+            log_info "Domain $DOMAIN resolves to: $DOMAIN_IP"
+            
+            if [ "$DOMAIN_IP" = "$SERVER_IP" ]; then
+                DOMAIN_RESOLVES_TO_SERVER=true
+                log_success "DNS is correctly configured"
+            else
+                log_warning "Domain resolves to different IP than this server"
+                log_info "Expected: $SERVER_IP, Got: $DOMAIN_IP"
+            fi
+        else
+            log_warning "Domain $DOMAIN does not resolve (DNS not configured yet)"
+        fi
+    fi
+    echo ""
 }
 
 # ============================================
@@ -101,6 +139,43 @@ test_containers() {
 }
 
 # ============================================
+# Test Local Access (Internal to Server)
+# ============================================
+test_local_access() {
+    echo ""
+    echo "============================================"
+    echo "   Local Access Tests (via Docker network)"
+    echo "============================================"
+    echo ""
+    
+    log_step "Testing services locally via Docker exec..."
+    
+    # Test nginx from inside Docker network
+    local nginx_local=$(docker exec nginx curl -s -o /dev/null -w "%{http_code}" http://localhost/ 2>/dev/null || echo "fail")
+    if [ "$nginx_local" = "200" ] || [ "$nginx_local" = "301" ]; then
+        log_success "Nginx serving frontend locally (code: $nginx_local)"
+    else
+        log_error "Nginx not serving frontend locally (code: $nginx_local)"
+    fi
+    
+    # Test API Gateway from inside Docker
+    local api_local=$(docker exec nginx curl -s -o /dev/null -w "%{http_code}" http://api-gateway:8080/actuator/health 2>/dev/null || echo "fail")
+    if [ "$api_local" = "200" ]; then
+        log_success "API Gateway accessible within Docker network"
+    else
+        log_warning "API Gateway not responding (code: $api_local)"
+    fi
+    
+    # Test frontend nginx health endpoint
+    local frontend_health=$(docker exec frontend curl -s -o /dev/null -w "%{http_code}" http://localhost/health 2>/dev/null || echo "fail")
+    if [ "$frontend_health" = "200" ]; then
+        log_success "Frontend health endpoint working"
+    else
+        log_warning "Frontend health endpoint not responding (code: $frontend_health)"
+    fi
+}
+
+# ============================================
 # Test Public Access (Should Work)
 # ============================================
 test_public_access() {
@@ -110,39 +185,73 @@ test_public_access() {
     echo "============================================"
     echo ""
     
-    log_step "Testing frontend access..."
+    # First check if DNS is set up
+    if [ "$DOMAIN_RESOLVES_TO_SERVER" != "true" ]; then
+        log_warning "Skipping domain-based tests - DNS not configured"
+        log_info "Configure an A record for $DOMAIN → $SERVER_IP"
+        log_info "Testing via IP instead..."
+        echo ""
+        
+        # Test via IP
+        local ip_http=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 10 "http://$SERVER_IP" 2>/dev/null || echo "000")
+        if [ "$ip_http" = "200" ] || [ "$ip_http" = "301" ] || [ "$ip_http" = "302" ]; then
+            log_success "Frontend accessible via IP http://$SERVER_IP (code: $ip_http)"
+        elif [ "$ip_http" = "000" ]; then
+            log_error "Cannot connect to http://$SERVER_IP"
+            log_info "Check if firewall allows port 80: sudo ufw status"
+        else
+            log_warning "Frontend returned unexpected code via IP: $ip_http"
+        fi
+        return
+    fi
     
-    # Test HTTP (should redirect or work)
+    log_step "Testing frontend access via $DOMAIN..."
+    
+    # Test HTTP
     local http_code=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 10 "http://$DOMAIN" 2>/dev/null || echo "000")
     
     if [ "$http_code" = "200" ] || [ "$http_code" = "301" ] || [ "$http_code" = "302" ]; then
         log_success "Frontend HTTP accessible (code: $http_code)"
+    elif [ "$http_code" = "000" ]; then
+        log_error "Cannot connect to http://$DOMAIN"
+        log_info "Possible causes:"
+        log_info "  1. Firewall blocking port 80"
+        log_info "  2. Nginx not responding"
+        log_info "  Run: sudo ufw status && docker logs nginx --tail 20"
     else
-        log_error "Frontend HTTP not accessible (code: $http_code)"
+        log_error "Frontend HTTP returned: $http_code"
     fi
     
-    # Test HTTPS
-    local https_code=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 10 -k "https://$DOMAIN" 2>/dev/null || echo "000")
-    
-    if [ "$https_code" = "200" ]; then
-        log_success "Frontend HTTPS accessible (code: $https_code)"
-    elif [ "$https_code" = "000" ]; then
-        log_warning "Frontend HTTPS not accessible (SSL may not be configured yet)"
+    # Test HTTPS (only if SSL configured)
+    if grep -q "ssl_certificate" "$PROJECT_ROOT/nginx/nginx.conf" 2>/dev/null; then
+        local https_code=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 10 -k "https://$DOMAIN" 2>/dev/null || echo "000")
+        
+        if [ "$https_code" = "200" ]; then
+            log_success "Frontend HTTPS accessible (code: $https_code)"
+        elif [ "$https_code" = "000" ]; then
+            log_error "Cannot connect to https://$DOMAIN"
+        else
+            log_warning "Frontend HTTPS returned: $https_code"
+        fi
     else
-        log_error "Frontend HTTPS issue (code: $https_code)"
+        log_info "HTTPS not configured yet - run ./deploy/setup-ssl.sh"
     fi
     
     log_step "Testing API Gateway access..."
     
-    # Test API health via public domain
-    local api_health=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 10 "http://$DOMAIN/api/hotels" 2>/dev/null || echo "000")
+    local api_code=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 10 "http://$DOMAIN/api/hotels" 2>/dev/null || echo "000")
     
-    if [ "$api_health" = "200" ] || [ "$api_health" = "401" ] || [ "$api_health" = "403" ]; then
-        log_success "API Gateway accessible via public domain (code: $api_health)"
-    elif [ "$api_health" = "000" ]; then
-        log_error "API Gateway not accessible"
+    if [ "$api_code" = "200" ]; then
+        log_success "API Gateway accessible (code: $api_code)"
+    elif [ "$api_code" = "401" ] || [ "$api_code" = "403" ]; then
+        log_success "API Gateway responding (auth required)"
+    elif [ "$api_code" = "000" ]; then
+        # Don't double count if we already failed HTTP
+        if [ "$http_code" != "000" ]; then
+            log_warning "API endpoint not responding"
+        fi
     else
-        log_warning "API Gateway returned unexpected code: $api_health"
+        log_warning "API Gateway returned: $api_code"
     fi
 }
 
@@ -156,39 +265,56 @@ test_internal_not_exposed() {
     echo "============================================"
     echo ""
     
-    log_step "Verifying internal services are NOT accessible externally..."
+    log_step "Verifying internal services are NOT accessible from outside..."
     echo ""
     
-    local server_ip=$(get_server_ip)
+    # We need to test from outside - if we're on the server, 
+    # we use nc (netcat) with a timeout to check if ports are open
+    # A port is "exposed" if we can establish a TCP connection to it
     
-    # List of internal ports that should NOT be accessible
-    local internal_ports=(
-        "8761:Discovery Server"
-        "8080:API Gateway"
-        "9081:Auth Service"
-        "9082:Hotel Service"
-        "9083:Menu Service"
-        "9086:Admin Rider Service"
-        "3306:MySQL"
-        "3307:MySQL (mapped)"
+    # List of internal ports that should NOT be accessible externally
+    declare -A internal_ports=(
+        ["8761"]="Discovery Server"
+        ["8080"]="API Gateway Direct"
+        ["9081"]="Auth Service"
+        ["9082"]="Hotel Service"
+        ["9083"]="Menu Service"
+        ["9086"]="Admin Rider Service"
+        ["3306"]="MySQL"
+        ["3307"]="MySQL (mapped)"
     )
     
-    for port_info in "${internal_ports[@]}"; do
-        local port="${port_info%%:*}"
-        local service="${port_info##*:}"
+    # Use netcat to test if port is open from external perspective
+    # If we're ON the server, we simulate external by checking if Docker
+    # exposes the port to the host
+    
+    for port in "${!internal_ports[@]}"; do
+        local service="${internal_ports[$port]}"
         
-        # Try to connect to the port
-        local result=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 3 "http://$server_ip:$port" 2>/dev/null || echo "000")
-        
-        if [ "$result" = "000" ]; then
-            log_success "$service (port $port) is NOT exposed externally"
+        # Check if port is bound on the host (exposed)
+        # ss -tuln will show listening ports
+        if ss -tuln 2>/dev/null | grep -q ":$port " ; then
+            log_error "$service (port $port) IS exposed on host! Should be internal only."
         else
-            log_error "$service (port $port) IS exposed externally! (code: $result)"
+            log_success "$service (port $port) is NOT exposed externally"
         fi
     done
     
     echo ""
-    log_info "Note: Only ports 80 and 443 should be exposed"
+    log_info "Only ports 80 and 443 should be exposed (via nginx)"
+    
+    # Verify nginx ports ARE exposed
+    if ss -tuln 2>/dev/null | grep -q ":80 " ; then
+        log_success "Port 80 (HTTP) is correctly exposed"
+    else
+        log_error "Port 80 (HTTP) is NOT exposed! Nginx may not be running."
+    fi
+    
+    if ss -tuln 2>/dev/null | grep -q ":443 " ; then
+        log_success "Port 443 (HTTPS) is correctly exposed"
+    else
+        log_info "Port 443 (HTTPS) not exposed (SSL not configured yet)"
+    fi
 }
 
 # ============================================
@@ -203,10 +329,23 @@ test_ssl() {
     
     log_step "Checking SSL certificate..."
     
+    # Check if SSL is configured in nginx
+    if ! grep -q "ssl_certificate" "$PROJECT_ROOT/nginx/nginx.conf" 2>/dev/null; then
+        log_info "SSL not configured yet"
+        log_info "Run: ./deploy/setup-ssl.sh --production"
+        return
+    fi
+    
     # Check if HTTPS is working
-    if curl -sI "https://$DOMAIN" --connect-timeout 10 2>/dev/null | head -1 | grep -qE "200|301|302"; then
-        log_success "HTTPS connection successful"
-        
+    local https_accessible=false
+    if [ "$DOMAIN_RESOLVES_TO_SERVER" = "true" ]; then
+        if curl -sI "https://$DOMAIN" --connect-timeout 10 -k 2>/dev/null | head -1 | grep -qE "200|301|302"; then
+            https_accessible=true
+            log_success "HTTPS connection successful"
+        fi
+    fi
+    
+    if [ "$https_accessible" = "true" ]; then
         # Get certificate info
         CERT_INFO=$(echo | openssl s_client -servername "$DOMAIN" -connect "$DOMAIN:443" 2>/dev/null)
         
@@ -228,19 +367,14 @@ test_ssl() {
                 else
                     log_error "SSL certificate has EXPIRED!"
                 fi
-                
-                # Check issuer
-                ISSUER=$(echo "$CERT_INFO" | openssl x509 -noout -issuer 2>/dev/null | sed 's/issuer=//')
-                if echo "$ISSUER" | grep -qi "Let's Encrypt"; then
-                    log_success "Certificate issued by Let's Encrypt"
-                else
-                    log_info "Certificate issuer: $ISSUER"
-                fi
             fi
         fi
     else
-        log_warning "HTTPS not accessible or not configured yet"
-        log_info "Run: ./deploy/setup-ssl.sh --production"
+        if [ "$DOMAIN_RESOLVES_TO_SERVER" = "true" ]; then
+            log_warning "HTTPS not accessible"
+        else
+            log_info "Cannot test SSL - DNS not configured"
+        fi
     fi
 }
 
@@ -254,39 +388,40 @@ test_api_endpoints() {
     echo "============================================"
     echo ""
     
-    local base_url="http://$DOMAIN"
-    
-    # Use HTTPS if available
-    if curl -sI "https://$DOMAIN" --connect-timeout 5 2>/dev/null | head -1 | grep -q "200"; then
-        base_url="https://$DOMAIN"
-    fi
-    
-    log_info "Testing endpoints at: $base_url"
+    # Test internally via Docker to avoid DNS issues
+    log_info "Testing API endpoints via Docker network..."
     echo ""
     
-    # Define endpoints to test
-    local endpoints=(
-        "/api/hotels:Hotels List"
-        "/api/auth/health:Auth Health"
-        "/health:Nginx Health"
-    )
+    # Test via nginx container calling API gateway
+    local hotels=$(docker exec nginx curl -s -o /dev/null -w "%{http_code}" "http://api-gateway:8080/api/hotels" 2>/dev/null || echo "fail")
+    if [ "$hotels" = "200" ]; then
+        log_success "Hotels API: OK (200)"
+    elif [ "$hotels" = "401" ]; then
+        log_success "Hotels API: Protected (requires auth)"
+    else
+        log_warning "Hotels API: Returned $hotels"
+    fi
     
-    for endpoint_info in "${endpoints[@]}"; do
-        local endpoint="${endpoint_info%%:*}"
-        local name="${endpoint_info##*:}"
-        
-        local result=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 10 "${base_url}${endpoint}" 2>/dev/null || echo "000")
-        
-        if [ "$result" = "200" ]; then
-            log_success "$name: OK (200)"
-        elif [ "$result" = "401" ] || [ "$result" = "403" ]; then
-            log_success "$name: Protected endpoint (needs auth)"
-        elif [ "$result" = "000" ]; then
-            log_error "$name: Connection failed"
-        else
-            log_warning "$name: Returned code $result"
-        fi
-    done
+    local auth_health=$(docker exec nginx curl -s -o /dev/null -w "%{http_code}" "http://auth-service:9081/actuator/health" 2>/dev/null || echo "fail")
+    if [ "$auth_health" = "200" ]; then
+        log_success "Auth Service Health: OK (200)"
+    else
+        log_warning "Auth Service Health: Returned $auth_health"
+    fi
+    
+    local hotel_health=$(docker exec nginx curl -s -o /dev/null -w "%{http_code}" "http://hotel-service:9082/actuator/health" 2>/dev/null || echo "fail")
+    if [ "$hotel_health" = "200" ]; then
+        log_success "Hotel Service Health: OK (200)"
+    else
+        log_warning "Hotel Service Health: Returned $hotel_health"
+    fi
+    
+    local menu_health=$(docker exec nginx curl -s -o /dev/null -w "%{http_code}" "http://menu-service:9083/actuator/health" 2>/dev/null || echo "fail")
+    if [ "$menu_health" = "200" ]; then
+        log_success "Menu Service Health: OK (200)"
+    else
+        log_warning "Menu Service Health: Returned $menu_health"
+    fi
 }
 
 # ============================================
@@ -306,12 +441,14 @@ test_database() {
         log_success "MySQL is responding"
         
         # Check databases exist
-        DBS=$(docker exec mysql mysql -u root -p"${MYSQL_ROOT_PASSWORD:-root}" -e "SHOW DATABASES LIKE 'fooddelivery%';" 2>/dev/null | tail -n +2 | wc -l)
+        DBS=$(docker exec mysql mysql -u root -p"${MYSQL_ROOT_PASSWORD:-root}" -N -e "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE 'fooddelivery%';" 2>/dev/null | tr -d '[:space:]')
         
-        if [ "$DBS" -ge 4 ]; then
+        if [ "$DBS" -ge 4 ] 2>/dev/null; then
             log_success "All $DBS application databases exist"
-        else
+        elif [ -n "$DBS" ]; then
             log_warning "Only $DBS application databases found (expected 4)"
+        else
+            log_warning "Could not count databases"
         fi
     else
         log_error "MySQL is not responding"
@@ -335,6 +472,12 @@ test_service_discovery() {
     
     if [ "$eureka_apps" -gt 0 ]; then
         log_success "Eureka has $eureka_apps registered service(s)"
+        
+        # List registered services
+        log_info "Registered services:"
+        docker exec discovery-server wget -q -O - http://localhost:8761/eureka/apps 2>/dev/null | grep -oP '(?<=<name>)[^<]+' | sort -u | while read svc; do
+            echo "    - $svc"
+        done
     else
         log_warning "No services registered in Eureka yet"
     fi
@@ -366,20 +509,32 @@ generate_report() {
             echo -e "  ${YELLOW}✓ Deployment OK with warnings${NC}"
         fi
         echo ""
-        echo "  Your application is accessible at:"
-        if curl -sI "https://$DOMAIN" --connect-timeout 5 2>/dev/null | head -1 | grep -q "200"; then
-            echo "  → https://$DOMAIN"
+        
+        if [ "$DOMAIN_RESOLVES_TO_SERVER" = "true" ]; then
+            echo "  Your application is accessible at:"
+            if grep -q "ssl_certificate" "$PROJECT_ROOT/nginx/nginx.conf" 2>/dev/null; then
+                echo "  → https://$DOMAIN"
+            else
+                echo "  → http://$DOMAIN"
+                echo ""
+                echo "  To enable HTTPS, run:"
+                echo "  → ./deploy/setup-ssl.sh --production"
+            fi
         else
-            echo "  → http://$DOMAIN"
+            echo "  Application is running but DNS not configured."
             echo ""
-            echo "  To enable HTTPS, run:"
-            echo "  → ./deploy/setup-ssl.sh --production"
+            echo "  Next steps:"
+            echo "  1. Add A record: $DOMAIN → $SERVER_IP"
+            echo "  2. Wait for DNS propagation"
+            echo "  3. Run: ./deploy/setup-ssl.sh --production"
+            echo ""
+            echo "  You can test now via IP: http://$SERVER_IP"
         fi
     else
         echo -e "  ${RED}✗ $TESTS_FAILED test(s) failed${NC}"
         echo ""
         echo "  Troubleshooting:"
-        echo "  → Check logs: ./deploy/logs.sh"
+        echo "  → Check logs: ./deploy/logs.sh --errors"
         echo "  → Health check: ./deploy/health-check.sh"
         echo "  → Restart services: docker compose -f docker-compose.prod.yml restart"
     fi
@@ -392,9 +547,8 @@ generate_report() {
 quick_test() {
     log_info "Running quick verification..."
     
-    # Just test basic access
     test_containers
-    test_public_access
+    test_local_access
     generate_report
 }
 
@@ -405,6 +559,7 @@ full_test() {
     log_info "Running full verification..."
     
     test_containers
+    test_local_access
     test_public_access
     test_internal_not_exposed
     test_ssl
@@ -427,10 +582,11 @@ security_audit() {
     test_internal_not_exposed
     test_ssl
     
-    # Additional security checks
+    # Additional security checks via Docker
     log_step "Checking security headers..."
     
-    HEADERS=$(curl -sI "http://$DOMAIN" 2>/dev/null)
+    # Get headers from nginx internally
+    HEADERS=$(docker exec nginx curl -sI http://localhost/ 2>/dev/null)
     
     if echo "$HEADERS" | grep -qi "X-Frame-Options"; then
         log_success "X-Frame-Options header present"
@@ -460,7 +616,7 @@ show_help() {
     echo "Usage: $0 [option]"
     echo ""
     echo "Options:"
-    echo "  --quick, -q      Quick verification (containers + access)"
+    echo "  --quick, -q      Quick verification (containers + local access)"
     echo "  --full, -f       Full verification (all tests)"
     echo "  --security, -s   Security-focused audit"
     echo "  --containers     Test containers only"
@@ -476,6 +632,7 @@ show_help() {
 main() {
     print_banner
     load_env
+    initialize
     
     case "${1:-}" in
         --quick|-q)
