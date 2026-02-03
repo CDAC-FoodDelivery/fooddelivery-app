@@ -28,7 +28,7 @@ check_containers() {
     echo "============================================"
     echo ""
     
-    local services=("nginx-proxy" "fooddelivery-mysql" "discovery-server" "api-gateway" "auth-service" "hotel-service" "menu-service" "admin-rider-service" "frontend")
+    local services=("nginx" "mysql" "discovery-server" "api-gateway" "auth-service" "hotel-service" "menu-service" "admin-rider-service" "frontend")
     
     printf "%-25s %-12s %-15s\n" "SERVICE" "STATUS" "HEALTH"
     printf "%-25s %-12s %-15s\n" "-------" "------" "------"
@@ -76,7 +76,7 @@ check_endpoints() {
     
     # Define endpoints to check
     local endpoints=(
-        "Frontend|http://localhost:3000"
+        "Frontend|http://localhost:80"
         "API Gateway|http://localhost:8080/actuator/health"
         "Discovery Server|http://localhost:8761"
         "Auth Service|http://localhost:9081/actuator/health"
@@ -123,7 +123,7 @@ check_database() {
     local pass="${MYSQL_PASSWORD:-root}"
     
     # Check MySQL is responding
-    if docker exec fooddelivery-mysql mysqladmin ping -u"$user" -p"$pass" --silent 2>/dev/null; then
+    if docker exec mysql mysqladmin ping -u"$user" -p"$pass" --silent 2>/dev/null; then
         echo -e "MySQL Connection: ${GREEN}OK${NC}"
     else
         echo -e "MySQL Connection: ${RED}FAILED${NC}"
@@ -132,7 +132,7 @@ check_database() {
     
     echo ""
     echo "Databases:"
-    docker exec fooddelivery-mysql mysql -u"$user" -p"$pass" -e "SHOW DATABASES LIKE 'fooddelivery%';" 2>/dev/null | tail -n +2
+    docker exec mysql mysql -u"$user" -p"$pass" -e "SHOW DATABASES LIKE 'fooddelivery%';" 2>/dev/null | tail -n +2
     
     echo ""
 }
