@@ -219,7 +219,10 @@ generate_staging_cert() {
         extra_flags="--break-my-certs"  # Allow downgrade to staging
     fi
     
-    # Run certbot
+    log_info "Running certbot (this may take a minute)..."
+    echo ""
+    
+    # Run certbot with non-interactive mode (-n) to prevent hanging
     docker compose -f "$COMPOSE_FILE" run --rm certbot \
         certonly \
         --webroot \
@@ -227,7 +230,9 @@ generate_staging_cert() {
         --email "$SSL_EMAIL" \
         --agree-tos \
         --no-eff-email \
+        --non-interactive \
         --staging \
+        --verbose \
         $extra_flags \
         -d "$DOMAIN"
     
@@ -276,6 +281,7 @@ generate_production_cert() {
     
     echo ""
     log_info "Requesting certificate from Let's Encrypt..."
+    log_info "This may take a minute..."
     echo ""
     
     # Run certbot - use --force-renewal only if cert exists
@@ -284,6 +290,7 @@ generate_production_cert() {
         renewal_flag="--force-renewal"
     fi
     
+    # Non-interactive mode prevents hanging
     docker compose -f "$COMPOSE_FILE" run --rm certbot \
         certonly \
         --webroot \
@@ -291,6 +298,8 @@ generate_production_cert() {
         --email "$SSL_EMAIL" \
         --agree-tos \
         --no-eff-email \
+        --non-interactive \
+        --verbose \
         $renewal_flag \
         -d "$DOMAIN"
     
