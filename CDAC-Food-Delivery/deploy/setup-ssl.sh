@@ -311,6 +311,24 @@ generate_production_cert() {
 configure_ssl() {
     log_step "Configuring Nginx for HTTPS..."
     
+    # CRITICAL: Check if certificates exist first
+    local cert_exists=$(check_existing_cert)
+    
+    if [ "$cert_exists" != "true" ]; then
+        log_error "SSL certificates do not exist yet!"
+        echo ""
+        log_info "You need to obtain certificates first:"
+        log_info "  1. Make sure DNS is configured: dig +short $DOMAIN"
+        log_info "  2. Run: $0 --staging     (to test)"
+        log_info "  3. Run: $0 --production  (to get real certs)"
+        echo ""
+        log_info "Reverting to HTTP-only configuration..."
+        reset_to_http
+        exit 1
+    fi
+    
+    log_success "SSL certificates found"
+    
     # Check if template exists
     if [ ! -f "$PROJECT_ROOT/nginx/nginx.prod.conf.template" ]; then
         log_error "nginx.prod.conf.template not found"
@@ -342,6 +360,29 @@ configure_ssl() {
     else
         log_error "Failed to reload Nginx"
         log_info "Check nginx config: docker exec nginx nginx -t"
+    fi
+}
+
+# ============================================
+# Reset to HTTP-only Configuration
+# ============================================
+reset_to_http() {
+    log_info "Applying HTTP-only nginx configuration..."
+    
+    if [ -f "$PROJECT_ROOT/nginx/nginx.initial.conf" ]; then
+        cp "$PROJECT_ROOT/nginx/nginx.initial.conf" "$PROJECT_ROOT/nginx/nginx.conf"
+        
+        # Reload nginx with HTTP-only config
+        docker compose -f "$COMPOSE_FILE" exec nginx nginx -t && \
+        docker compose -f "$COMPOSE_FILE" exec nginx nginx -s reload
+        
+        if [ $? -eq 0 ]; then
+            log_success "Nginx reset to HTTP-only mode"
+        else
+            log_warning "Could not reload nginx, may need to restart: docker compose -f docker-compose.prod.yml restart nginx"
+        fi
+    else
+        log_warning "nginx.initial.conf not found"
     fi
 }
 
@@ -532,6 +573,10 @@ main() {
             ;;
         --configure)
             configure_ssl
+            ;;
+        --reset)
+            reset_to_http
+            log_info "Now you can run: $0 --staging or $0 --production"
             ;;
         --renew)
             log_step "Forcing certificate renewal..."
