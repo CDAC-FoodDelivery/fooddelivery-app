@@ -4,6 +4,11 @@
 # Food Delivery Application - SSL Setup Script
 # Certbot/Let's Encrypt Certificate Management
 # ============================================
+# Usage:
+#   ./setup-ssl.sh --staging     # Test certificate (not trusted)
+#   ./setup-ssl.sh --production  # Real certificate (trusted)
+#   ./setup-ssl.sh --status      # Check certificate status
+# ============================================
 
 set -e
 
@@ -12,17 +17,28 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+CYAN='\033[0;36m'
 NC='\033[0m'
 
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+COMPOSE_FILE="$PROJECT_ROOT/docker-compose.prod.yml"
 
 # Logging functions
 log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
+log_step() { echo -e "${CYAN}[STEP]${NC} $1"; }
+
+print_banner() {
+    echo ""
+    echo "============================================"
+    echo "   Food Delivery App - SSL Setup"
+    echo "============================================"
+    echo ""
+}
 
 # ============================================
 # Load Environment
@@ -30,13 +46,19 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 load_env() {
     if [ ! -f "$PROJECT_ROOT/.env" ]; then
         log_error ".env file not found!"
+        log_info "Run: ./deploy/configure.sh to create one"
         exit 1
     fi
     
     source "$PROJECT_ROOT/.env"
     
-    if [ -z "$DOMAIN" ] || [ -z "$SSL_EMAIL" ]; then
-        log_error "DOMAIN and SSL_EMAIL must be set in .env file"
+    if [ -z "$DOMAIN" ]; then
+        log_error "DOMAIN must be set in .env file"
+        exit 1
+    fi
+    
+    if [ -z "$SSL_EMAIL" ]; then
+        log_error "SSL_EMAIL must be set in .env file"
         exit 1
     fi
     
@@ -45,94 +67,240 @@ load_env() {
 }
 
 # ============================================
-# Pre-checks
+# Check DNS Configuration
 # ============================================
-pre_checks() {
-    log_info "Running pre-checks..."
+check_dns() {
+    log_step "Checking DNS configuration..."
     
-    # Check if services are running
-    if ! docker compose -f "$PROJECT_ROOT/docker-compose.prod.yml" ps | grep -q "nginx"; then
-        log_error "Services are not running. Please run deploy.sh first."
+    # Get server's public IP
+    local server_ip=$(curl -s --connect-timeout 5 ifconfig.me 2>/dev/null)
+    if [ -z "$server_ip" ]; then
+        server_ip=$(curl -s --connect-timeout 5 icanhazip.com 2>/dev/null)
+    fi
+    if [ -z "$server_ip" ]; then
+        server_ip=$(curl -s --connect-timeout 5 ipinfo.io/ip 2>/dev/null)
+    fi
+    
+    if [ -z "$server_ip" ]; then
+        log_error "Could not determine server's public IP"
         exit 1
     fi
-    log_success "Services are running"
     
-    # Check if domain resolves to this server
-    log_info "Checking DNS resolution for $DOMAIN..."
+    log_info "Server IP: $server_ip"
     
-    local server_ip=$(curl -s ifconfig.me 2>/dev/null || curl -s icanhazip.com 2>/dev/null || echo "unknown")
-    local domain_ip=$(dig +short "$DOMAIN" 2>/dev/null | tail -n1 || echo "unknown")
+    # Get domain's IP
+    local domain_ip=$(dig +short "$DOMAIN" 2>/dev/null | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
     
-    if [ "$server_ip" != "unknown" ] && [ "$domain_ip" != "unknown" ]; then
-        if [ "$server_ip" = "$domain_ip" ]; then
-            log_success "Domain $DOMAIN resolves to this server ($server_ip)"
-        else
-            log_warning "Domain $DOMAIN resolves to $domain_ip, but this server is $server_ip"
-            log_warning "Certificate generation may fail if DNS is not properly configured"
-            
-            read -p "Continue anyway? (y/n): " -n 1 -r
-            echo
-            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-                exit 1
-            fi
+    if [ -z "$domain_ip" ]; then
+        log_error "Domain $DOMAIN does not resolve to any IP address!"
+        echo ""
+        log_info "╔════════════════════════════════════════════════════════════╗"
+        log_info "║  DNS NOT CONFIGURED - SSL certificate cannot be obtained   ║"
+        log_info "╚════════════════════════════════════════════════════════════╝"
+        echo ""
+        log_info "To fix this:"
+        log_info "  1. Go to your domain registrar (GoDaddy, Namecheap, Cloudflare, etc.)"
+        log_info "  2. Add an A record:"
+        log_info "     - Name/Host: @ (or 'fooddelivery' if subdomain)"
+        log_info "     - Type: A"
+        log_info "     - Value: $server_ip"
+        log_info "     - TTL: 300 (or lowest available)"
+        log_info "  3. Wait 5-10 minutes for DNS propagation"
+        log_info "  4. Verify with: dig +short $DOMAIN"
+        log_info "  5. Run this script again"
+        echo ""
+        exit 1
+    fi
+    
+    log_info "Domain IP: $domain_ip"
+    
+    if [ "$server_ip" != "$domain_ip" ]; then
+        log_error "DNS MISMATCH!"
+        log_info "Domain $DOMAIN resolves to: $domain_ip"
+        log_info "But this server's IP is: $server_ip"
+        echo ""
+        log_info "Let's Encrypt will fail because it needs to reach THIS server"
+        log_info "when it tries to verify http://$DOMAIN/.well-known/acme-challenge/"
+        echo ""
+        log_info "Please update your DNS A record to point to: $server_ip"
+        echo ""
+        
+        read -p "Continue anyway (will likely fail)? (y/n): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            exit 1
         fi
     else
-        log_warning "Could not verify DNS resolution. Make sure $DOMAIN points to this server."
+        log_success "DNS correctly configured: $DOMAIN → $server_ip"
     fi
+}
+
+# ============================================
+# Check Services Running
+# ============================================
+check_services() {
+    log_step "Checking services..."
+    
+    if ! docker compose -f "$COMPOSE_FILE" ps 2>/dev/null | grep -q "nginx.*running"; then
+        log_error "Nginx is not running!"
+        log_info "Please run: ./deploy/deploy.sh first"
+        exit 1
+    fi
+    log_success "Nginx is running"
+    
+    # Test that nginx can serve the ACME challenge path
+    log_step "Testing ACME challenge path..."
+    
+    # Create a test file in the certbot webroot
+    docker exec nginx sh -c "mkdir -p /var/www/certbot/.well-known/acme-challenge && echo 'test' > /var/www/certbot/.well-known/acme-challenge/test" 2>/dev/null || true
+    
+    # Try to access it via HTTP
+    local test_result=$(curl -s --connect-timeout 10 "http://$DOMAIN/.well-known/acme-challenge/test" 2>/dev/null)
+    
+    if [ "$test_result" = "test" ]; then
+        log_success "ACME challenge path is accessible"
+        # Clean up test file
+        docker exec nginx rm -f /var/www/certbot/.well-known/acme-challenge/test 2>/dev/null || true
+    else
+        log_error "Cannot access ACME challenge path!"
+        log_info "Let's Encrypt needs to access: http://$DOMAIN/.well-known/acme-challenge/"
+        echo ""
+        log_info "Possible causes:"
+        log_info "  1. Firewall blocking port 80"
+        log_info "  2. Nginx not configured correctly"
+        log_info "  3. DNS not pointing to this server"
+        echo ""
+        log_info "Check firewall: sudo ufw status"
+        log_info "Check nginx: docker logs nginx --tail 20"
+        
+        # Clean up
+        docker exec nginx rm -f /var/www/certbot/.well-known/acme-challenge/test 2>/dev/null || true
+        
+        read -p "Continue anyway? (y/n): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            exit 1
+        fi
+    fi
+}
+
+# ============================================
+# Check for Existing Certificate
+# ============================================
+check_existing_cert() {
+    local cert_exists=false
+    
+    # Check if certificate exists in Docker volume
+    if docker run --rm -v fooddelivery-certbot-certs:/certs:ro alpine \
+        test -f "/certs/live/$DOMAIN/fullchain.pem" 2>/dev/null; then
+        cert_exists=true
+    fi
+    
+    echo "$cert_exists"
 }
 
 # ============================================
 # Generate Certificate (Staging - for testing)
 # ============================================
 generate_staging_cert() {
-    log_info "Generating staging certificate (for testing)..."
+    log_step "Generating STAGING certificate (for testing)..."
     log_warning "Staging certificates are NOT trusted by browsers"
+    log_warning "Use this to test before requesting a production certificate"
+    echo ""
     
-    docker compose -f "$PROJECT_ROOT/docker-compose.prod.yml" run --rm certbot \
-        certonly --webroot \
+    local cert_exists=$(check_existing_cert)
+    local extra_flags=""
+    
+    if [ "$cert_exists" = "true" ]; then
+        log_info "Existing certificate found, will replace with staging cert"
+        extra_flags="--break-my-certs"  # Allow downgrade to staging
+    fi
+    
+    # Run certbot
+    docker compose -f "$COMPOSE_FILE" run --rm certbot \
+        certonly \
+        --webroot \
         --webroot-path=/var/www/certbot \
         --email "$SSL_EMAIL" \
         --agree-tos \
         --no-eff-email \
         --staging \
+        $extra_flags \
         -d "$DOMAIN"
     
-    log_success "Staging certificate generated"
-    log_info "If successful, run with --production to get a real certificate"
+    local result=$?
+    
+    if [ $result -eq 0 ]; then
+        log_success "Staging certificate generated successfully!"
+        echo ""
+        log_info "Certificate location: /etc/letsencrypt/live/$DOMAIN/"
+        log_info "This certificate is NOT trusted by browsers"
+        echo ""
+        log_info "If this worked, run: $0 --production"
+    else
+        log_error "Failed to generate staging certificate"
+        show_troubleshooting
+        exit 1
+    fi
 }
 
 # ============================================
 # Generate Certificate (Production)
 # ============================================
 generate_production_cert() {
-    log_info "Generating production SSL certificate..."
-    log_warning "Rate limits apply! You can only request ~5 certificates per week per domain."
+    log_step "Generating PRODUCTION certificate..."
+    log_warning "Rate limits: ~5 certificates per week per domain"
+    echo ""
     
-    read -p "Are you sure you want to generate a production certificate? (y/n): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        log_info "Aborted"
-        exit 0
+    local cert_exists=$(check_existing_cert)
+    
+    if [ "$cert_exists" = "true" ]; then
+        log_info "Existing certificate found"
+        read -p "Replace existing certificate? (y/n): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            log_info "Aborted"
+            exit 0
+        fi
+    else
+        read -p "Request production certificate? (y/n): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            log_info "Aborted"
+            exit 0
+        fi
     fi
     
-    docker compose -f "$PROJECT_ROOT/docker-compose.prod.yml" run --rm certbot \
-        certonly --webroot \
+    echo ""
+    log_info "Requesting certificate from Let's Encrypt..."
+    echo ""
+    
+    # Run certbot - use --force-renewal only if cert exists
+    local renewal_flag=""
+    if [ "$cert_exists" = "true" ]; then
+        renewal_flag="--force-renewal"
+    fi
+    
+    docker compose -f "$COMPOSE_FILE" run --rm certbot \
+        certonly \
+        --webroot \
         --webroot-path=/var/www/certbot \
         --email "$SSL_EMAIL" \
         --agree-tos \
         --no-eff-email \
-        --force-renewal \
+        $renewal_flag \
         -d "$DOMAIN"
     
-    if [ $? -eq 0 ]; then
+    local result=$?
+    
+    if [ $result -eq 0 ]; then
         log_success "Production certificate generated successfully!"
+        echo ""
         configure_ssl
+        setup_renewal
     else
-        log_error "Failed to generate certificate"
-        log_info "Common issues:"
-        log_info "  1. DNS not pointing to this server"
-        log_info "  2. Port 80 not accessible from internet"
-        log_info "  3. Rate limit exceeded"
+        log_error "Failed to generate production certificate"
+        show_troubleshooting
         exit 1
     fi
 }
@@ -141,51 +309,83 @@ generate_production_cert() {
 # Configure Nginx with SSL
 # ============================================
 configure_ssl() {
-    log_info "Configuring Nginx with SSL..."
+    log_step "Configuring Nginx for HTTPS..."
     
-    # Generate production nginx config
+    # Check if template exists
+    if [ ! -f "$PROJECT_ROOT/nginx/nginx.prod.conf.template" ]; then
+        log_error "nginx.prod.conf.template not found"
+        exit 1
+    fi
+    
+    # Generate production nginx config with SSL
+    export DOMAIN
     envsubst '${DOMAIN}' < "$PROJECT_ROOT/nginx/nginx.prod.conf.template" > "$PROJECT_ROOT/nginx/nginx.conf"
     
-    # Reload nginx
-    docker compose -f "$PROJECT_ROOT/docker-compose.prod.yml" exec nginx nginx -s reload
+    # Also copy proxy_params if it exists
+    if [ -f "$PROJECT_ROOT/nginx/proxy_params_custom" ]; then
+        docker cp "$PROJECT_ROOT/nginx/proxy_params_custom" nginx:/etc/nginx/proxy_params_custom 2>/dev/null || true
+    fi
     
-    log_success "Nginx configured with SSL"
-    log_success "Your site is now available at https://$DOMAIN"
+    # Reload nginx
+    log_info "Reloading Nginx..."
+    docker compose -f "$COMPOSE_FILE" exec nginx nginx -t && \
+    docker compose -f "$COMPOSE_FILE" exec nginx nginx -s reload
+    
+    if [ $? -eq 0 ]; then
+        log_success "Nginx configured with SSL"
+        echo ""
+        log_success "════════════════════════════════════════════════"
+        log_success "  Your site is now available at:"
+        log_success "  https://$DOMAIN"
+        log_success "════════════════════════════════════════════════"
+        echo ""
+    else
+        log_error "Failed to reload Nginx"
+        log_info "Check nginx config: docker exec nginx nginx -t"
+    fi
 }
 
 # ============================================
-# Setup Auto-Renewal Cron Job
+# Setup Auto-Renewal
 # ============================================
 setup_renewal() {
-    log_info "Setting up automatic certificate renewal..."
+    log_step "Setting up automatic certificate renewal..."
     
     # Create renewal script
-    cat > "$PROJECT_ROOT/deploy/renew-certs.sh" << 'EOF'
+    cat > "$PROJECT_ROOT/deploy/renew-certs.sh" << 'RENEWAL_SCRIPT'
 #!/bin/bash
 # Auto-renewal script for SSL certificates
+# Runs via cron twice daily
 
-cd "$(dirname "$0")/.."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+LOG_FILE="/var/log/certbot-renewal.log"
 
-# Renew certificates
-docker compose -f docker-compose.prod.yml run --rm certbot renew --quiet
+echo "$(date): Starting certificate renewal check" >> "$LOG_FILE"
+
+cd "$PROJECT_ROOT"
+
+# Attempt renewal
+docker compose -f docker-compose.prod.yml run --rm certbot renew --quiet 2>&1 | tee -a "$LOG_FILE"
 
 # Reload nginx if renewal was successful
 if [ $? -eq 0 ]; then
-    docker compose -f docker-compose.prod.yml exec nginx nginx -s reload
+    docker compose -f docker-compose.prod.yml exec -T nginx nginx -s reload 2>&1 | tee -a "$LOG_FILE"
+    echo "$(date): Renewal check completed" >> "$LOG_FILE"
 fi
-EOF
+RENEWAL_SCRIPT
     
     chmod +x "$PROJECT_ROOT/deploy/renew-certs.sh"
     
     # Add to crontab (run twice daily as recommended by Let's Encrypt)
-    local cron_job="0 */12 * * * $PROJECT_ROOT/deploy/renew-certs.sh >> /var/log/certbot-renewal.log 2>&1"
+    local cron_job="0 */12 * * * $PROJECT_ROOT/deploy/renew-certs.sh"
     
     # Check if cron job already exists
     if crontab -l 2>/dev/null | grep -q "renew-certs.sh"; then
         log_info "Cron job already exists"
     else
         (crontab -l 2>/dev/null; echo "$cron_job") | crontab -
-        log_success "Cron job added for automatic renewal (runs twice daily)"
+        log_success "Cron job added for automatic renewal (runs every 12 hours)"
     fi
 }
 
@@ -193,125 +393,167 @@ EOF
 # Check Certificate Status
 # ============================================
 check_status() {
-    log_info "Checking SSL certificate status..."
+    log_step "Checking SSL certificate status..."
+    echo ""
     
-    docker compose -f "$PROJECT_ROOT/docker-compose.prod.yml" run --rm certbot certificates
+    # List certificates
+    docker compose -f "$COMPOSE_FILE" run --rm certbot certificates
     
     echo ""
-    log_info "Testing HTTPS connection..."
     
-    if curl -sI "https://$DOMAIN" 2>/dev/null | head -1 | grep -q "200\|301\|302"; then
-        log_success "HTTPS is working correctly!"
+    # Test HTTPS connection
+    log_step "Testing HTTPS connection..."
+    
+    if curl -sI "https://$DOMAIN" --connect-timeout 10 2>/dev/null | head -1 | grep -qE "200|301|302"; then
+        log_success "HTTPS is working!"
+        
+        # Show certificate info
+        echo ""
+        log_info "Certificate details:"
+        echo | openssl s_client -servername "$DOMAIN" -connect "$DOMAIN:443" 2>/dev/null | \
+            openssl x509 -noout -subject -issuer -dates 2>/dev/null || true
     else
         log_warning "Could not verify HTTPS connection"
+        log_info "Certificate may not be configured in Nginx yet"
+        log_info "Run: $0 --configure"
     fi
-    
-    # Check certificate expiry
+}
+
+# ============================================
+# Troubleshooting Guide
+# ============================================
+show_troubleshooting() {
     echo ""
-    log_info "Certificate expiration info:"
-    echo | openssl s_client -servername "$DOMAIN" -connect "$DOMAIN:443" 2>/dev/null | \
-        openssl x509 -noout -dates 2>/dev/null || log_warning "Could not check certificate dates"
+    log_info "════════════════════════════════════════════════"
+    log_info "  Troubleshooting Guide"
+    log_info "════════════════════════════════════════════════"
+    echo ""
+    log_info "1. Check DNS: dig +short $DOMAIN"
+    log_info "   → Should return your server's IP"
+    echo ""
+    log_info "2. Check firewall: sudo ufw status"
+    log_info "   → Port 80 must be ALLOW"
+    echo ""
+    log_info "3. Test ACME challenge:"
+    log_info "   curl http://$DOMAIN/.well-known/acme-challenge/test"
+    log_info "   → Should return 'test' (or 404, not connection error)"
+    echo ""
+    log_info "4. Check nginx logs: docker logs nginx --tail 50"
+    echo ""
+    log_info "5. Check certbot logs:"
+    log_info "   docker compose -f docker-compose.prod.yml run --rm certbot certificates"
+    echo ""
 }
 
 # ============================================
-# Revoke Certificate
+# Show Help
 # ============================================
-revoke_cert() {
-    log_warning "This will revoke the SSL certificate for $DOMAIN"
-    read -p "Are you sure? (type 'REVOKE' to confirm): " confirm
+show_help() {
+    echo "Usage: $0 [option]"
+    echo ""
+    echo "Options:"
+    echo "  --staging      Generate staging/test certificate (not browser-trusted)"
+    echo "  --production   Generate production certificate (browser-trusted)"
+    echo "  --configure    Configure Nginx with existing certificates"
+    echo "  --renew        Force certificate renewal"
+    echo "  --status       Check certificate status"
+    echo "  --help, -h     Show this help"
+    echo ""
+    echo "Recommended workflow:"
+    echo "  1. Run staging test:  $0 --staging"
+    echo "  2. If successful:     $0 --production"
+    echo ""
+    echo "Prerequisites:"
+    echo "  - Domain must resolve to this server (DNS A record)"
+    echo "  - Port 80 must be accessible from internet"
+    echo "  - Services must be running (./deploy/deploy.sh)"
+    echo ""
+}
+
+# ============================================
+# Interactive Menu
+# ============================================
+interactive_menu() {
+    echo "Interactive SSL Setup"
+    echo ""
+    echo "1) Generate staging certificate (for testing)"
+    echo "2) Generate production certificate"
+    echo "3) Check certificate status"
+    echo "4) Configure Nginx with SSL"
+    echo "5) Show troubleshooting guide"
+    echo "6) Exit"
+    echo ""
+    read -p "Select option [1-6]: " option
     
-    if [ "$confirm" = "REVOKE" ]; then
-        docker compose -f "$PROJECT_ROOT/docker-compose.prod.yml" run --rm certbot revoke \
-            --cert-name "$DOMAIN"
-        log_success "Certificate revoked"
-    else
-        log_info "Revocation cancelled"
-    fi
+    case $option in
+        1)
+            check_dns
+            check_services
+            generate_staging_cert
+            ;;
+        2)
+            check_dns
+            check_services
+            generate_production_cert
+            ;;
+        3)
+            check_status
+            ;;
+        4)
+            configure_ssl
+            ;;
+        5)
+            show_troubleshooting
+            ;;
+        *)
+            log_info "Exiting..."
+            exit 0
+            ;;
+    esac
 }
 
 # ============================================
-# Main
+# Main Execution
 # ============================================
 main() {
-    echo ""
-    echo "============================================"
-    echo "   Food Delivery App - SSL Setup"
-    echo "============================================"
-    echo ""
-    
+    print_banner
     load_env
     
     case "${1:-}" in
         --staging)
-            pre_checks
+            check_dns
+            check_services
             generate_staging_cert
             ;;
         --production)
-            pre_checks
+            check_dns
+            check_services
             generate_production_cert
-            setup_renewal
             ;;
         --configure)
             configure_ssl
             ;;
         --renew)
-            docker compose -f "$PROJECT_ROOT/docker-compose.prod.yml" run --rm certbot renew
-            docker compose -f "$PROJECT_ROOT/docker-compose.prod.yml" exec nginx nginx -s reload
+            log_step "Forcing certificate renewal..."
+            docker compose -f "$COMPOSE_FILE" run --rm certbot renew --force-renewal
+            docker compose -f "$COMPOSE_FILE" exec nginx nginx -s reload
+            log_success "Renewal complete"
             ;;
         --status)
             check_status
             ;;
-        --revoke)
-            revoke_cert
+        --troubleshoot)
+            show_troubleshooting
             ;;
         --help|-h)
-            echo "Usage: $0 [option]"
-            echo ""
-            echo "Options:"
-            echo "  --staging      Generate staging/test certificate (not trusted)"
-            echo "  --production   Generate production certificate (trusted)"
-            echo "  --configure    Configure Nginx with existing certificates"
-            echo "  --renew        Force certificate renewal"
-            echo "  --status       Check certificate status"
-            echo "  --revoke       Revoke the certificate"
-            echo "  --help, -h     Show this help"
-            echo ""
-            echo "Recommended workflow:"
-            echo "  1. First test with: $0 --staging"
-            echo "  2. If successful:   $0 --production"
-            echo ""
+            show_help
             exit 0
             ;;
         *)
-            echo "Interactive SSL Setup"
-            echo ""
-            echo "1) Generate staging certificate (for testing)"
-            echo "2) Generate production certificate"
-            echo "3) Check certificate status"
-            echo "4) Exit"
-            echo ""
-            read -p "Select option [1-4]: " option
-            
-            case $option in
-                1)
-                    pre_checks
-                    generate_staging_cert
-                    ;;
-                2)
-                    pre_checks
-                    generate_production_cert
-                    setup_renewal
-                    ;;
-                3)
-                    check_status
-                    ;;
-                *)
-                    log_info "Exiting..."
-                    exit 0
-                    ;;
-            esac
+            interactive_menu
             ;;
     esac
 }
 
+# Run main function
 main "$@"
