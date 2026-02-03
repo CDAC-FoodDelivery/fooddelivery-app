@@ -31,3 +31,9 @@ logs/
 
 # Sensitive
 .env
+
+# AI tool configs
+.agents/
+.claude/
+.codex/
+.opencode/
